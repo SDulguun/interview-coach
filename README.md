@@ -126,9 +126,21 @@ Open http://localhost:5173
 - Fields: company, question, answer, candidate name, timestamp
 - Filtered to remove evaluator meta-questions
 
+## Evaluation
+
+See [`notebooks/evaluation.ipynb`](notebooks/evaluation.ipynb) for full validation:
+
+- **Gold standard**: 20 hand-annotated answers across 4 score quartiles; system scores correlate significantly with human judgment (p < 0.05) and achieve the lowest MAE across all methods tested
+- **Baselines**: 5-dimension pipeline compared against random, word-count-only, and WC+filler baselines
+- **Coverage**: 471 Q&A pairs from 15 company sources across 6 job categories
+- **Error analysis**: Score floor effects and meta-comment false positives identified with concrete fixes
+- **Question type validation**: ANOVA confirms statistically significant score differences across introduction/behavioral/motivation/general types
+- **Weight sensitivity**: 4 weighting schemes compared; chosen weights are competitive
+
 ## Limitations
 
-- **Rule-based NLP** — Scoring uses heuristic thresholds, not trained on labeled data. No validation against human interview coaches.
+- **Rule-based NLP** — Scoring uses heuristic thresholds; validated against 20-answer gold standard (see evaluation notebook).
+- **Score floor effect** — System minimum ~55 due to dimension baselines; cannot penalize very poor answers enough.
 - **Mongolian tokenization** — Whitespace-based only; no morphological analysis.
 - **STAR detection** — Keyword matching, not semantic understanding.
 - **STT accuracy** — ~20% word error rate on Mongolian speech (model limitation).
@@ -137,7 +149,8 @@ Open http://localhost:5173
 
 ## Next Steps
 
-- Validate NLP scores against human-annotated interview ratings
+- ~~Validate NLP scores against human-annotated interview ratings~~ (done — see evaluation notebook)
+- Expand gold standard to 50+ answers with multiple annotators for inter-annotator agreement
 - Integrate Google Cloud Speech API for improved STT accuracy
 - Add user accounts with persistent cloud storage
 - Expand dataset with more industry-specific Q&A pairs
