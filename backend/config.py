@@ -29,6 +29,11 @@ SCORE_WEIGHTS = {
     "relevance": 0.25,
 }
 
+# Core ML embedding model (sentence-transformers → .mlpackage)
+COREML_MODEL_PATH = os.path.join(BASE_DIR, "models", "multilingual-minilm.mlpackage")
+COREML_TOKENIZER = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+COREML_SEQ_LENGTH = 128
+
 # Whisper model settings
 WHISPER_MODEL = os.environ.get(
     "WHISPER_MODEL", os.path.join(BASE_DIR, "models", "whisper-mn")

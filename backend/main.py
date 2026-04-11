@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .whisper_service import load_whisper_model, is_whisper_available
+from .nlp.coreml_embeddings import load_embedding_model, is_embedding_model_available
 from .routers import analyze, jobs, questions, resume, tts
 
 logging.basicConfig(level=logging.INFO)
@@ -17,9 +18,10 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Startup/shutdown events."""
     logger.info("Starting Interview Coach API...")
-    # Load Whisper in background so API is available immediately
+    # Load models in background so API is available immediately
     threading.Thread(target=load_whisper_model, daemon=True).start()
-    logger.info("API ready (Whisper loading in background).")
+    threading.Thread(target=load_embedding_model, daemon=True).start()
+    logger.info("API ready (Whisper + Core ML loading in background).")
     yield
     logger.info("Shutting down.")
 
@@ -54,4 +56,5 @@ async def health_check():
     return {
         "status": "healthy",
         "whisper_available": is_whisper_available(),
+        "coreml_available": is_embedding_model_available(),
     }

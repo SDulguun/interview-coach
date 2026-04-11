@@ -11,7 +11,7 @@ venv/
 .venv/
 env/
 
-# Whisper model (2.9GB — download separately)
+# ML models (download/convert separately)
 backend/models/
 
 # Node

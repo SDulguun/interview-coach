@@ -36,11 +36,13 @@ class InterviewAnalyzer:
         # 3. Structure analysis
         structure_result = analyze_structure(response_text)
 
-        # 4. Relevance scoring (if job context provided)
+        # 4. Relevance scoring (always when Core ML available, else only with job context)
+        from .coreml_embeddings import is_embedding_model_available
+
         relevance_result = None
-        if job_description or required_skills:
+        if job_description or required_skills or is_embedding_model_available():
             relevance_result = compute_relevance(
-                response_text, job_description, required_skills
+                response_text, question, job_description, required_skills
             )
 
         # 5. Generate feedback (with question context for type-aware scoring)

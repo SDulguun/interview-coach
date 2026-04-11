@@ -14,7 +14,7 @@ A web-based platform where users practice mock job interviews entirely in Mongol
   - Filler Words (Mongolian + English filler detection)
   - Vocabulary Richness (Type-Token Ratio)
   - Structure (STAR method detection + action verbs, question-type-aware)
-  - Relevance (TF-IDF cosine similarity + skill keyword matching)
+  - Relevance (Core ML sentence embeddings + TF-IDF + skill keyword matching)
 - **Hybrid Question Generation** — Curated opening/closing + CSV-matched questions from 489 real interview Q&A pairs + template fallback
 - **Resume Parsing** — Extract skills from uploaded PDF/DOCX resumes
 - **Bilingual Interface** — Full Mongolian/English language toggle
@@ -28,7 +28,8 @@ A web-based platform where users practice mock job interviews entirely in Mongol
 | Backend | FastAPI (Python) |
 | STT | faster-whisper (CTranslate2, float16) |
 | TTS | edge-tts (mn-MN-YesuiNeural) |
-| NLP | Custom rule-based pipeline (scikit-learn TF-IDF) |
+| NLP | Rule-based pipeline + Core ML semantic embeddings |
+| Embeddings | paraphrase-multilingual-MiniLM-L12-v2 → Core ML (.mlpackage) |
 | Data | 489 Q&A pairs from 18 Mongolian companies |
 | Charts | Chart.js + react-chartjs-2 |
 
@@ -81,6 +82,13 @@ interview-coach/
 ```bash
 cd backend
 pip install -r requirements.txt
+```
+
+**Core ML embedding model** (required for semantic relevance scoring):
+```bash
+pip install torch transformers coremltools
+python -m backend.scripts.convert_model
+# Creates backend/models/multilingual-minilm.mlpackage (~200MB)
 ```
 
 **Whisper model** (required for STT):
@@ -154,4 +162,4 @@ See [`notebooks/evaluation.ipynb`](notebooks/evaluation.ipynb) for full validati
 - Integrate Google Cloud Speech API for improved STT accuracy
 - Add user accounts with persistent cloud storage
 - Expand dataset with more industry-specific Q&A pairs
-- Implement semantic similarity for relevance scoring (sentence embeddings)
+- ~~Implement semantic similarity for relevance scoring (sentence embeddings)~~ (done — Core ML multilingual-MiniLM)
