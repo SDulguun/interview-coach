@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useLang } from '../lang';
 
+const OTHER_KEY = '__other__';
+
 const CATEGORY_ICONS = {
   'Банк, санхүү, нягтлан бодох бүртгэл': (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -100,8 +102,9 @@ const CATEGORY_DATA = {
 const CATEGORIES = Object.keys(CATEGORY_DATA);
 
 function JobSelector({ onJobSelect }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [selected, setSelected] = useState('');
+  const [customRole, setCustomRole] = useState('');
 
   function handleSelect(category) {
     if (selected === category) {
@@ -111,17 +114,42 @@ function JobSelector({ onJobSelect }) {
     }
 
     setSelected(category);
-    const data = CATEGORY_DATA[category] || { skills: [], companies: [] };
-    onJobSelect({
-      id: null,
-      title: category,
-      company: '',
-      description: '',
-      required_skills: data.skills.join(', '),
-    });
+    if (category === OTHER_KEY) {
+      // "Other" selected — use custom role or general
+      onJobSelect({
+        id: null,
+        title: customRole.trim() || 'general',
+        company: '',
+        description: '',
+        required_skills: 'Харилцааны чадвар, Багаар ажиллах, Цагийн менежмент',
+      });
+    } else {
+      const data = CATEGORY_DATA[category] || { skills: [], companies: [] };
+      onJobSelect({
+        id: null,
+        title: category,
+        company: '',
+        description: '',
+        required_skills: data.skills.join(', '),
+      });
+    }
   }
 
-  const data = selected ? (CATEGORY_DATA[selected] || { skills: [], companies: [] }) : null;
+  function handleCustomRoleChange(e) {
+    const val = e.target.value;
+    setCustomRole(val);
+    if (selected === OTHER_KEY) {
+      onJobSelect({
+        id: null,
+        title: val.trim() || 'general',
+        company: '',
+        description: '',
+        required_skills: 'Харилцааны чадвар, Багаар ажиллах, Цагийн менежмент',
+      });
+    }
+  }
+
+  const data = selected && selected !== OTHER_KEY ? (CATEGORY_DATA[selected] || { skills: [], companies: [] }) : null;
 
   return (
     <div className="job-selector">
@@ -137,7 +165,32 @@ function JobSelector({ onJobSelect }) {
             <span className="category-name">{cat}</span>
           </button>
         ))}
+        <button
+          className={`job-category-card ${selected === OTHER_KEY ? 'selected' : ''}`}
+          onClick={() => handleSelect(OTHER_KEY)}
+        >
+          <span className="category-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/>
+            </svg>
+          </span>
+          <span className="category-name">{lang === 'mn' ? 'Бусад' : 'Other'}</span>
+        </button>
       </div>
+
+      {selected === OTHER_KEY && (
+        <div className="selected-job-info">
+          <strong>{lang === 'mn' ? 'Бусад салбар' : 'Other Field'}</strong>
+          <p className="skills-description">{lang === 'mn' ? 'Ажлын чиглэлээ бичнэ үү. Ерөнхий асуултууд ашиглагдана.' : 'Enter your field. General questions will be used.'}</p>
+          <input
+            type="text"
+            className="other-role-input"
+            placeholder={lang === 'mn' ? 'Жишээ: Логистик, Дизайн, Хууль...' : 'e.g. Logistics, Design, Law...'}
+            value={customRole}
+            onChange={handleCustomRoleChange}
+          />
+        </div>
+      )}
 
       {selected && data && (
         <div className="selected-job-info">

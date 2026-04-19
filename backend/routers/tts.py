@@ -32,8 +32,9 @@ async def generate_tts(req: TTSRequest):
     if not text:
         return {"error": "No text provided"}
 
-    # Check cache
-    text_hash = hashlib.md5(text.encode()).hexdigest()
+    # Check cache (include voice in hash to avoid collisions)
+    cache_key = f"{req.voice}:{text}"
+    text_hash = hashlib.md5(cache_key.encode()).hexdigest()
     cache_path = os.path.join(CACHE_DIR, f"{text_hash}.mp3")
 
     if not os.path.exists(cache_path):

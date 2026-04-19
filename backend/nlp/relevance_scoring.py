@@ -3,16 +3,42 @@ import re
 import math
 from collections import Counter
 
-# Skill keywords from EDA cell 24
+# Expanded skill keywords with concept-level synonyms
+# Each skill maps to multiple Mongolian and English terms that demonstrate it
 SKILL_KEYWORDS = {
-    'Харилцааны чадвар': ['харилцаа', 'ярих', 'тайлбарлах', 'илэрхийлэх', 'сонсох'],
-    'Багаар ажиллах':    ['баг', 'хамтран', 'хамтдаа', 'хамт'],
-    'Цагийн менежмент':  ['цаг', 'хугацаа', 'хуваарь'],
-    'Нягт нямбай':       ['нарийвчлал', 'анхааралтай', 'нямбай', 'нарийн'],
-    'Манлайлал':         ['манлайлал', 'удирдах', 'удирдлага', 'хариуцах'],
-    'Дасан зохицох':     ['дасах', 'зохицох', 'уян хатан'],
-    'Шинжилгээ хийх':    ['шинжилгээ', 'судалгаа', 'дүн шинжилгээ'],
-    'Асуудал шийдвэрлэх': ['асуудал', 'шийдвэрлэх', 'шийдэл'],
+    'Харилцааны чадвар': ['харилцаа', 'ярих', 'тайлбарлах', 'илэрхийлэх', 'сонсох',
+                          'ярилцсан', 'тайлбарласан', 'илтгэсэн', 'бичсэн', 'мэдээлсэн',
+                          'presented', 'communicated', 'explained', 'discussed'],
+    'Багаар ажиллах':    ['баг', 'хамтран', 'хамтдаа', 'хамт', 'хамтарсан', 'хамт олон',
+                          'хуваалцсан', 'нийлж', 'нэгдсэн', 'зөвшилцсөн',
+                          'team', 'collaborated', 'together', 'group work'],
+    'Цагийн менежмент':  ['цаг', 'хугацаа', 'хуваарь', 'хугацаандаа', 'дедлайн', 'амжсан',
+                          'эрэмбэлж', 'төлөвлөж', 'зохион байгуулж',
+                          'deadline', 'schedule', 'prioritize', 'on time'],
+    'Нягт нямбай':       ['нарийвчлал', 'анхааралтай', 'нямбай', 'нарийн', 'чанар',
+                          'шалгасан', 'баталгаажуулсан', 'нягтлан',
+                          'detail', 'careful', 'quality', 'accuracy'],
+    'Манлайлал':         ['манлайлал', 'удирдах', 'удирдлага', 'хариуцах', 'удирдсан',
+                          'чиглүүлсэн', 'зохицуулсан', 'менежмент', 'ахлах',
+                          'led', 'managed', 'directed', 'leadership', 'supervised'],
+    'Дасан зохицох':     ['дасах', 'зохицох', 'уян хатан', 'өөрчлөлт', 'шинэ', 'суралцсан',
+                          'зохицуулсан', 'шилжсэн', 'хурдан',
+                          'adapt', 'flexible', 'change', 'learned'],
+    'Шинжилгээ хийх':    ['шинжилгээ', 'судалгаа', 'дүн шинжилгээ', 'дата', 'тоон',
+                          'шинжилсэн', 'судалсан', 'үзүүлэлт',
+                          'analysis', 'research', 'data', 'metrics'],
+    'Асуудал шийдвэрлэх': ['асуудал', 'шийдвэрлэх', 'шийдэл', 'шийдвэрлэсэн', 'засварласан',
+                           'олж', 'тодорхойлсон', 'алдаа', 'debug',
+                           'solve', 'fix', 'resolve', 'troubleshoot', 'problem'],
+    # Additional common skills
+    'Програмчлал':       ['код', 'програм', 'хөгжүүлсэн', 'бичсэн', 'кодчилсон',
+                          'code', 'program', 'develop', 'software', 'build'],
+    'Төсөл удирдах':     ['төсөл', 'удирдсан', 'хариуцсан', 'зохицуулсан', 'хуваарилсан',
+                          'project', 'managed', 'coordinated', 'delivered'],
+    'Санхүүгийн мэдлэг': ['санхүү', 'тооцоо', 'бүртгэл', 'нягтлан', 'тайлан', 'төсөв',
+                          'finance', 'accounting', 'budget', 'report'],
+    'Борлуулалт':        ['борлуулалт', 'худалдаа', 'үйлчлүүлэгч', 'хэрэглэгч', 'зах зээл',
+                          'sales', 'customer', 'client', 'market'],
 }
 
 # Mongolian stop words to exclude from TF-IDF
@@ -71,7 +97,11 @@ def compute_tfidf_relevance(response: str, job_description: str) -> float:
 
 
 def compute_keyword_relevance(response: str, required_skills: str) -> dict:
-    """Match response against required skills using SKILL_KEYWORDS."""
+    """Match response against required skills using SKILL_KEYWORDS.
+
+    Uses concept-level matching: checks for synonyms and related terms,
+    not just exact skill name matches.
+    """
     if not response or not required_skills:
         return {"score": 0.0, "matched_skills": [], "missing_skills": [], "total_required": 0}
 
@@ -83,18 +113,29 @@ def compute_keyword_relevance(response: str, required_skills: str) -> dict:
 
     for skill in skills_list:
         skill_clean = skill.strip()
+        if not skill_clean:
+            continue
+
+        found = False
+        # Check concept map first
         if skill_clean in SKILL_KEYWORDS:
             keywords = SKILL_KEYWORDS[skill_clean]
             if any(kw in response_lower for kw in keywords):
-                matched.append(skill_clean)
-            else:
-                missing.append(skill_clean)
+                found = True
         else:
             # Direct match: check if skill name appears in response
             if skill_clean.lower() in response_lower:
-                matched.append(skill_clean)
+                found = True
             else:
-                missing.append(skill_clean)
+                # Try partial word match for compound skills
+                words = skill_clean.lower().split()
+                if any(w in response_lower for w in words if len(w) > 3):
+                    found = True
+
+        if found:
+            matched.append(skill_clean)
+        else:
+            missing.append(skill_clean)
 
     total = len(matched) + len(missing)
     score = len(matched) / total if total > 0 else 0.0
@@ -124,14 +165,15 @@ def compute_relevance(
     tfidf_score = compute_tfidf_relevance(response, job_description) if job_description else 0.0
     keyword_result = compute_keyword_relevance(response, required_skills)
 
+    # Question-response relevance via TF-IDF as a baseline
+    question_tfidf = compute_tfidf_relevance(response, question) if question else 0.0
+
     # Semantic similarity via Core ML (if available)
     semantic_score = None
     if is_embedding_model_available() and question:
         try:
             raw_sim = compute_semantic_similarity(response, question)
             # Scale raw cosine similarity to a usable 0-1 range.
-            # Q-A pairs get lower cosine sim than paraphrases (model is trained
-            # for STS, not QA), so we rescale: [0, 0.6] → [0.3, 1.0].
             semantic_score = min(max(0.3 + raw_sim * 1.17, 0.0), 1.0)
             if job_description:
                 job_sim = compute_semantic_similarity(response, job_description)
@@ -142,24 +184,24 @@ def compute_relevance(
 
     # Combined score: weighted blend
     if semantic_score is not None:
-        # Core ML available — semantic similarity drives the score
         if job_description and required_skills:
             combined = 0.4 * semantic_score + 0.3 * tfidf_score + 0.3 * keyword_result["score"]
         elif required_skills:
             combined = 0.5 * semantic_score + 0.5 * keyword_result["score"]
         else:
-            # No job context — semantic similarity to question replaces constant 75.0
             combined = semantic_score
     else:
-        # Fallback: original TF-IDF + keyword logic
+        # Fallback: TF-IDF + keyword logic
         if job_description and required_skills:
             combined = 0.4 * tfidf_score + 0.6 * keyword_result["score"]
         elif job_description:
             combined = tfidf_score
         elif required_skills:
-            combined = keyword_result["score"]
+            # Blend keyword match with question-response TF-IDF for fairer scoring
+            combined = 0.6 * keyword_result["score"] + 0.4 * question_tfidf
         else:
-            combined = 0.0
+            # No job context: use question-response TF-IDF as relevance proxy
+            combined = question_tfidf if question_tfidf > 0 else 0.0
 
     return {
         "tfidf_score": tfidf_score,

@@ -92,8 +92,9 @@ export async function parseResume(formData) {
   return response.data;
 }
 
-export async function generateTTS(text) {
-  const response = await api.post('/api/tts/generate', { text }, {
+export async function generateTTS(text, lang = 'mn') {
+  const voice = lang === 'en' ? 'en-US-AvaNeural' : 'mn-MN-YesuiNeural';
+  const response = await api.post('/api/tts/generate', { text, voice }, {
     responseType: 'blob',
     timeout: 15000,
   });

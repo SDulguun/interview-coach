@@ -2,12 +2,34 @@ import { useState } from 'react';
 import { useLang } from '../lang';
 import { parseResume } from '../api';
 
+// Generate preparation tips based on extracted skills
+function generatePrepTips(skills, lang) {
+  if (!skills || skills.length === 0) return [];
+  const tips = [];
+
+  if (lang === 'mn') {
+    tips.push(`Таны CV-д "${skills.slice(0, 3).join('", "')}" зэрэг ур чадварууд тодорхойлогдсон. Эдгээрийг ярилцлагад тодорхой жишээгээр баталгаажуулаарай.`);
+    if (skills.length >= 3) {
+      tips.push('Ур чадвар бүрдээ нэг тодорхой амжилт, жишээ бэлдээрэй. "Би ... хийж, ... үр дүн гарсан" гэсэн бүтцээр ярихад илүү итгэлтэй сонсогдоно.');
+    }
+    tips.push('CV-д бичсэн ур чадваруудаа дасгал хийхдээ дурдвал үнэлгээ өндөр байна.');
+  } else {
+    tips.push(`Your resume highlights "${skills.slice(0, 3).join('", "')}". Prepare concrete examples for each of these in your interview.`);
+    if (skills.length >= 3) {
+      tips.push('For each skill, prepare one achievement story using the format: "I did X, which resulted in Y." This sounds more convincing.');
+    }
+    tips.push('Mentioning skills from your CV during practice will improve your evaluation scores.');
+  }
+  return tips;
+}
+
 function ResumeUpload({ onSkillsExtracted }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [loading, setLoading] = useState(false);
   const [skills, setSkills] = useState([]);
   const [error, setError] = useState('');
   const [fileName, setFileName] = useState('');
+  const [prepTips, setPrepTips] = useState([]);
 
   async function handleFile(e) {
     const file = e.target.files[0];
@@ -21,11 +43,14 @@ function ResumeUpload({ onSkillsExtracted }) {
       const formData = new FormData();
       formData.append('file', file);
       const result = await parseResume(formData);
-      setSkills(result.skills || []);
-      onSkillsExtracted(result.skills || [], result.text || '');
+      const extracted = result.skills || [];
+      setSkills(extracted);
+      setPrepTips(generatePrepTips(extracted, lang));
+      onSkillsExtracted(extracted, result.text || '');
     } catch (err) {
       setError(err.message || 'Failed to parse resume');
       setSkills([]);
+      setPrepTips([]);
     } finally {
       setLoading(false);
     }
@@ -65,12 +90,28 @@ function ResumeUpload({ onSkillsExtracted }) {
       {skills.length > 0 && (
         <div className="resume-result">
           <p className="resume-success">{t('resume_uploaded')}</p>
-          <p className="resume-skills-label">{t('resume_skills')}</p>
-          <div className="resume-skills-tags">
-            {skills.map((skill, i) => (
-              <span key={i} className="skill-tag">{skill}</span>
-            ))}
+
+          {/* Extracted skills */}
+          <div className="resume-section">
+            <p className="resume-skills-label">{t('resume_skills')}</p>
+            <div className="resume-skills-tags">
+              {skills.map((skill, i) => (
+                <span key={i} className="skill-tag">{skill}</span>
+              ))}
+            </div>
           </div>
+
+          {/* Preparation tips */}
+          {prepTips.length > 0 && (
+            <div className="resume-section resume-tips">
+              <p className="resume-skills-label">{t('cv_talking_points')}</p>
+              <ul className="resume-tips-list">
+                {prepTips.map((tip, i) => (
+                  <li key={i}>{tip}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>

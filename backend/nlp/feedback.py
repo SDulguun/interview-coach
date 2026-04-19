@@ -4,11 +4,19 @@ from ..config import BENCHMARKS, SCORE_WEIGHTS
 
 # ─── Question type classification ───
 INTRO_KEYWORDS = ["танилцуулна", "өөрийгөө", "introduce", "about yourself"]
-MOTIVATION_KEYWORDS = ["яагаад", "сонирхол", "why", "motivation", "сонирхолтой"]
+MOTIVATION_KEYWORDS = ["яагаад", "сонирхол", "why", "motivation", "сонирхолтой", "сэдэл"]
 BEHAVIORAL_KEYWORDS = [
     "туршлага", "нөхцөл", "шийдвэрлэсэн", "жишээ", "хэрхэн",
     "experience", "situation", "challenge", "difficult", "tell me about a time",
-    "амжилт", "бахарх",
+    "амжилт", "бахарх", "тохиолдол",
+]
+TECHNICAL_KEYWORDS = [
+    "мэргэжлийн", "техникийн", "арга барил", "технологи",
+    "technical", "methodology", "approach", "tools",
+]
+CLOSING_KEYWORDS = [
+    "асуух зүйл", "мэдэхийг", "нэмэлт", "questions for us", "anything else",
+    "сүүлд", "хамгийн сүүлд", "нэмж хэлэх",
 ]
 
 
@@ -19,6 +27,10 @@ def _classify_question(question: str) -> str:
         return "introduction"
     if any(kw in q for kw in MOTIVATION_KEYWORDS):
         return "motivation"
+    if any(kw in q for kw in TECHNICAL_KEYWORDS):
+        return "technical"
+    if any(kw in q for kw in CLOSING_KEYWORDS):
+        return "closing"
     if any(kw in q for kw in BEHAVIORAL_KEYWORDS):
         return "behavioral"
     return "general"
@@ -35,18 +47,18 @@ def _score_word_count(word_count: int) -> tuple[float, list[str], list[str]]:
 
     if q1 <= word_count <= q3:
         score = 90.0
-        strengths.append(f"Хариултын урт тохиромжтой ({word_count} үг, жишиг: {q1}-{q3})")
+        strengths.append(f"Хариултын урт тохиромжтой ({word_count} үг)")
     elif word_count > q3:
         over = min((word_count - q3) / q3, 0.5)
         score = max(90.0 - over * 60, 50.0)
-        improvements.append(f"Хариулт хэт урт байна ({word_count} үг). {q3} үгээс бага байвал зүгээр.")
+        improvements.append(f"Хариулт арай урт байна ({word_count} үг). Товчлоход дасгал хийгээрэй.")
     elif word_count >= 10:
         under = (q1 - word_count) / q1
         score = max(70.0 - under * 60, 30.0)
-        improvements.append(f"Хариулт богино байна ({word_count} үг). Дор хаяж {q1} үг хэлэх хэрэгтэй.")
+        improvements.append(f"Хариулт богино байна ({word_count} үг). Жишээ нэмж дэлгэрүүлээрэй.")
     else:
         score = 20.0
-        improvements.append(f"Хариулт маш богино байна ({word_count} үг). Жишээ, тайлбартай дэлгэрэнгүй хариулна уу.")
+        improvements.append(f"Хариулт маш богино байна ({word_count} үг). Жишээ, тайлбартай дэлгэрэнгүй хариулаарай.")
 
     return score, strengths, improvements
 
@@ -58,16 +70,16 @@ def _score_fillers(filler_count: int, word_count: int) -> tuple[float, list[str]
 
     if filler_count == 0:
         score = 100.0
-        strengths.append("Дүүргэгч үг ашиглаагүй — маш сайн!")
+        strengths.append("Хариулт тодорхой, дүүргэгч үггүй")
     elif filler_count == 1:
-        score = 80.0
-        strengths.append("Дүүргэгч үг бага ашигласан (1 удаа)")
+        score = 85.0
+        strengths.append("Дүүргэгч үг бага ашигласан")
     elif filler_count == 2:
-        score = 60.0
-        improvements.append("Дүүргэгч үг 2 удаа ашигласан. Багасгахыг хичээгээрэй.")
+        score = 65.0
+        improvements.append("Дүүргэгч үг хэд хэд байна. Бодолтой зогсолт ашиглахыг зөвлөж байна.")
     else:
         score = max(40.0 - (filler_count - 3) * 10, 10.0)
-        improvements.append(f"Дүүргэгч үг хэт олон ({filler_count} удаа). 'тэгээд', 'тиймээ' гэх мэт үгсийг хасаарай.")
+        improvements.append(f"Дүүргэгч үг хэт олон ({filler_count}). Бодолтой зогсолтоор (pause) солих дасгал хийгээрэй.")
 
     return score, strengths, improvements
 
@@ -80,99 +92,121 @@ def _score_ttr(ttr: float) -> tuple[float, list[str], list[str]]:
 
     if ttr >= mean:
         score = min(85.0 + (ttr - mean) * 200, 100.0)
-        strengths.append(f"Үгийн сан баялаг (TTR: {ttr:.2f})")
+        strengths.append("Үгийн сан баялаг, олон төрлийн илэрхийлэл ашигласан")
     elif ttr >= 0.80:
-        score = 70.0
-        improvements.append(f"Үгийн сан дундаж (TTR: {ttr:.2f}). Илүү олон төрлийн үг хэрэглэнэ үү.")
+        score = 75.0
     else:
-        score = max(50.0 - (0.80 - ttr) * 200, 20.0)
-        improvements.append(f"Үгийн сан давтагдаж байна (TTR: {ttr:.2f}). Ижил утгатай өөр үгс хэрэглэнэ үү.")
+        score = max(50.0 - (0.80 - ttr) * 200, 25.0)
+        improvements.append("Зарим үг давтагдаж байна. Илүү олон төрлийн илэрхийлэл ашиглаарай.")
 
     return score, strengths, improvements
 
 
 def _score_structure(action_verb_count: int, star_score: float, question_type: str = "general") -> tuple[float, list[str], list[str]]:
-    """Score answer structure, tailored to question type."""
+    """Score answer structure, tailored to question type.
+
+    Design principle: well-organized natural answers should score well
+    even without strict STAR adherence. We use a generous base score
+    and bonus system rather than a punitive deduction system.
+    """
     strengths = []
     improvements = []
 
     if question_type == "introduction":
-        # For introductions: evaluate clarity and completeness, not STAR/action verbs
-        if action_verb_count >= 1:
-            score = 75.0
-            strengths.append("Танилцуулгадаа үйл үг ашигласан")
-        else:
-            score = 60.0
-
-        # Give a generous base score for introductions
-        score = max(score, 60.0)
-        if score < 80.0:
-            improvements.append("Боловсрол, туршлага, зорилгоо тодорхой дурдаарай")
+        # Introductions: clarity and completeness, not STAR
+        base = 65.0
+        if action_verb_count >= 2:
+            base = 80.0
+            strengths.append("Танилцуулга тодорхой, үйл үг зохистой ашигласан")
+        elif action_verb_count >= 1:
+            base = 72.0
+        score = base
 
     elif question_type == "motivation":
-        # For motivation: evaluate enthusiasm and reasoning, mild action verb check
+        # Motivation: enthusiasm and reasoning
+        base = 60.0
         if action_verb_count >= 2:
-            av_score = 40.0
-            strengths.append("Сэдэлжүүлэх хариулт өгсөн")
+            base = 70.0
+            strengths.append("Сэдлээ тодорхой илэрхийлсэн")
         elif action_verb_count >= 1:
-            av_score = 30.0
-        else:
-            av_score = 20.0
-            improvements.append("Сонирхлын шалтгаанаа тодорхой тайлбарлаарай")
-
-        # Lighter STAR weight for motivation questions
-        star_points = star_score * 30.0
-        score = av_score + star_points + 20.0  # base bonus
+            base = 65.0
+        star_bonus = star_score * 20.0
+        score = base + star_bonus
 
     elif question_type == "behavioral":
-        # For behavioral: full STAR + action verb scoring (original logic)
+        # Behavioral: full STAR + action verb scoring
+        base = 40.0
         if action_verb_count >= 3:
-            av_score = 50.0
-            strengths.append(f"Үйл үгийг идэвхтэй ашигласан ({action_verb_count} ш)")
+            base = 55.0
+            strengths.append(f"Үйл үгийг идэвхтэй ашигласан ({action_verb_count})")
         elif action_verb_count >= 1:
-            av_score = 30.0
-        else:
-            av_score = 10.0
-            improvements.append("Идэвхтэй үйл үг ашиглаарай (жишээ нь: хийсэн, удирдсан, шийдвэрлэсэн)")
+            base = 45.0
 
-        star_points = star_score * 50.0
+        star_bonus = star_score * 45.0
         if star_score >= 0.75:
-            strengths.append("STAR аргачлалыг сайн ашигласан (Нөхцөл-Даалгавар-Үйлдэл-Үр дүн)")
+            strengths.append("STAR аргачлалыг сайн ашигласан")
         elif star_score >= 0.5:
-            improvements.append("STAR аргачлалыг бүрэн бус ашигласан. Үр дүнгээ заавал дурдаарай.")
-        else:
-            improvements.append("STAR аргачлал ашиглаарай: Нөхцөл байдал → Даалгавар → Юу хийсэн → Үр дүн")
+            improvements.append("STAR аргачлалын зарим хэсгийг нэмж дурдвал хариулт илүү бүтэцтэй болно.")
+        elif star_score < 0.25:
+            improvements.append("Нөхцөл байдал, хийсэн зүйл, үр дүнгээ тодорхой тусгаж ярихыг зөвлөж байна.")
+        score = base + star_bonus
 
-        score = av_score + star_points
+    elif question_type == "technical":
+        # Technical: knowledge demonstration, less STAR dependency
+        base = 60.0
+        if action_verb_count >= 2:
+            base = 72.0
+            strengths.append("Мэргэжлийн тайлбар тодорхой")
+        elif action_verb_count >= 1:
+            base = 66.0
+        star_bonus = star_score * 20.0
+        score = base + star_bonus
+
+    elif question_type == "closing":
+        # Closing questions: engagement and thoughtfulness
+        base = 70.0
+        if action_verb_count >= 1:
+            base = 78.0
+        score = base
 
     else:
-        # General questions: moderate scoring
-        if action_verb_count >= 2:
-            av_score = 45.0
-            strengths.append(f"Үйл үг ашигласан ({action_verb_count} ш)")
+        # General questions: moderate but fair scoring
+        base = 50.0
+        if action_verb_count >= 3:
+            base = 65.0
+            strengths.append(f"Тодорхой илэрхийлсэн ({action_verb_count} үйл үг)")
+        elif action_verb_count >= 2:
+            base = 60.0
         elif action_verb_count >= 1:
-            av_score = 30.0
-        else:
-            av_score = 15.0
-            improvements.append("Хариултдаа илүү тодорхой жишээ оруулаарай")
+            base = 55.0
 
-        star_points = star_score * 35.0
-        score = av_score + star_points + 10.0  # small base bonus
+        star_bonus = star_score * 30.0
+        if star_score >= 0.75:
+            strengths.append("Хариултын бүтэц сайн зохион байгуулагдсан")
+        score = base + star_bonus
+
+    # Floor: no answer with any substance should score below 40
+    score = max(score, 40.0)
+    # Cap at 100
+    score = min(score, 100.0)
 
     return score, strengths, improvements
 
 
 def _score_relevance(combined_score: float, matched: list, missing: list) -> tuple[float, list[str], list[str]]:
-    """Score relevance to job listing."""
+    """Score relevance to job listing. More generous with partial matches."""
     strengths = []
     improvements = []
 
-    score = combined_score * 100.0
+    # Apply a floor: even low TF-IDF overlap should not give 0
+    score = max(combined_score * 100.0, 35.0) if combined_score > 0 else 75.0
 
     if matched:
-        strengths.append(f"Ажлын байрны шаардлагатай нийцсэн ур чадварууд: {', '.join(matched)}")
-    if missing:
-        improvements.append(f"Дараах ур чадваруудыг дурдаагүй: {', '.join(missing)}")
+        strengths.append(f"Шаардлагатай ур чадваруудыг хариултдаа тусгасан: {', '.join(matched[:3])}")
+    if missing and len(missing) <= 2:
+        improvements.append(f"Дараах чадваруудыг жишээгээр нэмж дурдвал илүү сайн: {', '.join(missing)}")
+    elif missing:
+        improvements.append(f"Зарим шаардлагатай чадваруудыг хариултандаа холбох боломжтой: {', '.join(missing[:3])}")
 
     return score, strengths, improvements
 
@@ -213,11 +247,6 @@ def generate_feedback(
         )
         all_strengths += rel_str
         all_improvements += rel_imp
-
-        if rel_missing:
-            suggestions.append(
-                f"Хариултандаа дараах ур чадваруудтай холбоотой жишээ нэмээрэй: {', '.join(rel_missing[:3])}"
-            )
     else:
         rel_score = 75.0  # no job context — don't penalize
 
@@ -230,18 +259,27 @@ def generate_feedback(
         + rel_score * SCORE_WEIGHTS["relevance"]
     )
 
-    # Question-type-aware suggestions
+    # ─── Question-type-aware suggestions (polite, constructive tone) ───
     if word_count < 15:
-        suggestions.append("Хариултаа дэлгэрэнгүй болгохыг зөвлөж байна. Жишээ оруулаарай.")
-    if filler_count >= 2:
-        suggestions.append("Дүүргэгч үгийг бодолтой зогсолтоор (pause) солиорой.")
+        suggestions.append("Хариултаа жишээгээр дэлгэрүүлвэл илүү итгэлтэй сонсогдоно.")
+    if filler_count >= 3:
+        suggestions.append("Бодолтой зогсолт (pause) ашиглаж дүүргэгч үгийг багасгахыг зөвлөж байна.")
 
     if question_type == "behavioral" and star_score < 0.5 and word_count >= 20:
-        suggestions.append("Туршлагын асуултад STAR аргачлалаар хариулаарай.")
+        suggestions.append("Туршлагын асуултад нөхцөл байдал, хийсэн зүйл, үр дүнгээ тодорхой тусгахыг зөвлөж байна.")
     elif question_type == "introduction" and word_count >= 10:
-        suggestions.append("Танилцуулгадаа нэр, боловсрол, туршлага, зорилгоо багтаагаарай.")
+        if wc_score >= 80:
+            suggestions.append("Танилцуулга тодорхой байна. Энэ ажлын байранд яагаад нийцэхээ нэмж дурдвал илүү сайн.")
+        else:
+            suggestions.append("Нэр, боловсрол, хамгийн чухал туршлагаа товч дурдаарай.")
     elif question_type == "motivation":
-        suggestions.append("Компанийн талаар судалгаа хийж, тодорхой шалтгаан дурдаарай.")
+        suggestions.append("Сэдлээ тодорхой жишээгээр баталгаажуулвал илүү итгэлтэй сонсогдоно.")
+    elif question_type == "technical":
+        suggestions.append("Мэргэжлийн мэдлэгээ тодорхой жишээ, туршлагаар баяжуулаарай.")
+
+    # If overall score is already strong, limit suggestions
+    if overall >= 80 and len(suggestions) > 1:
+        suggestions = suggestions[:1]
 
     return {
         "overall_score": round(overall, 1),

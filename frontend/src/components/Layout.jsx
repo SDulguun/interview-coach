@@ -1,29 +1,27 @@
 import { useState } from 'react';
 import { useLang } from '../lang';
+import illustDesk from '../assets/illust-desk.jpg';
 
-function Layout({ children, phase, onNavigate }) {
+function Layout({ children, phase, onNavigate, onLogout, currentUser }) {
   const { lang, t, toggleLang } = useLang();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
     {
       key: 'setup',
-      label: t('nav_dashboard'),
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="3" width="7" height="7" rx="1" />
-          <rect x="14" y="3" width="7" height="7" rx="1" />
-          <rect x="3" y="14" width="7" height="7" rx="1" />
-          <rect x="14" y="14" width="7" height="7" rx="1" />
-        </svg>
-      ),
-    },
-    {
-      key: 'interview',
       label: t('nav_practice'),
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      ),
+    },
+    {
+      key: 'guides',
+      label: t('nav_guides'),
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
         </svg>
       ),
     },
@@ -41,10 +39,11 @@ function Layout({ children, phase, onNavigate }) {
   ];
 
   const pageTitle = {
-    setup: t('nav_dashboard'),
+    setup: t('nav_practice'),
     interview: t('nav_practice'),
-    results: t('nav_history'),
+    results: t('step_results'),
     history: t('nav_history'),
+    guides: t('nav_guides'),
   };
 
   function handleNav(key) {
@@ -63,7 +62,7 @@ function Layout({ children, phase, onNavigate }) {
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
-          <h1>AI Interview Coach</h1>
+          <h1>Interview Coach</h1>
           <p className="subtitle">{t('header_subtitle')}</p>
         </div>
 
@@ -71,7 +70,11 @@ function Layout({ children, phase, onNavigate }) {
           {navItems.map((item) => (
             <button
               key={item.key}
-              className={`sidebar-nav-item ${phase === item.key || (item.key === 'history' && phase === 'results') ? 'active' : ''}`}
+              className={`sidebar-nav-item ${
+                phase === item.key ||
+                (item.key === 'setup' && (phase === 'interview' || phase === 'results'))
+                  ? 'active' : ''
+              }`}
               onClick={() => handleNav(item.key)}
             >
               {item.icon}
@@ -80,9 +83,27 @@ function Layout({ children, phase, onNavigate }) {
           ))}
         </nav>
 
+        <div className="sidebar-illustration">
+          <img src={illustDesk} alt="" />
+        </div>
+
         <div className="sidebar-footer">
+          {currentUser && (
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">{currentUser.displayName}</span>
+              <button className="logout-btn" onClick={onLogout}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                {t('logout')}
+              </button>
+            </div>
+          )}
           <button className="lang-toggle" onClick={toggleLang}>
-            {lang === 'mn' ? 'EN / English' : 'MN / Монгол'}
+            <span className="lang-badge">{lang.toUpperCase()}</span>
+            {lang === 'mn' ? 'English' : 'Монгол'}
           </button>
         </div>
       </aside>
@@ -99,7 +120,7 @@ function Layout({ children, phase, onNavigate }) {
                 <path d="M3 12h18M3 6h18M3 18h18" />
               </svg>
             </button>
-            <span className="topbar-title">{pageTitle[phase] || t('nav_dashboard')}</span>
+            <span className="topbar-title">{pageTitle[phase] || t('nav_practice')}</span>
           </div>
         </header>
 

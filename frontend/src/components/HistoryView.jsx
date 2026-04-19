@@ -1,6 +1,7 @@
 import { useLang } from '../lang';
 import ProgressChart from './ProgressChart';
 import SessionHistory from './SessionHistory';
+import illustAnalytics from '../assets/illust-analytics.jpg';
 
 function HistoryView({ onStartNew }) {
   const { t } = useLang();
@@ -8,8 +9,13 @@ function HistoryView({ onStartNew }) {
   return (
     <div className="history-view">
       <div className="history-view-header">
-        <h2>{t('nav_history')}</h2>
-        <p>{t('history_view_desc')}</p>
+        <div className="history-header-row">
+          <div>
+            <h2>{t('nav_history')}</h2>
+            <p>{t('history_view_desc')}</p>
+          </div>
+          <img src={illustAnalytics} alt="" className="history-header-illustration" />
+        </div>
       </div>
       <ProgressChart />
       <SessionHistory />

@@ -10,6 +10,7 @@ import {
   Filler,
 } from 'chart.js';
 import { useLang } from '../lang';
+import { getCurrentUser, userKey } from '../auth';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
 
@@ -18,7 +19,9 @@ function ProgressChart() {
 
   const history = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem('interview-history') || '[]');
+      const user = getCurrentUser();
+      const histKey = userKey(user?.id, 'history');
+      return JSON.parse(localStorage.getItem(histKey) || '[]');
     } catch {
       return [];
     }
@@ -43,9 +46,9 @@ function ProgressChart() {
     datasets: [
       {
         data: reversed.map((item) => item.score),
-        borderColor: '#FF6B35',
-        backgroundColor: 'rgba(255, 107, 53, 0.06)',
-        pointBackgroundColor: '#FF6B35',
+        borderColor: '#243B53',
+        backgroundColor: 'rgba(36, 59, 83, 0.05)',
+        pointBackgroundColor: '#243B53',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
         pointRadius: 5,
@@ -64,9 +67,9 @@ function ProgressChart() {
       legend: { display: false },
       tooltip: {
         backgroundColor: '#fff',
-        titleColor: '#1a1a2e',
-        bodyColor: '#4a4a68',
-        borderColor: '#e8e5e0',
+        titleColor: '#1F2933',
+        bodyColor: '#52606D',
+        borderColor: '#D9E2EC',
         borderWidth: 1,
         cornerRadius: 8,
         padding: 10,
@@ -81,7 +84,7 @@ function ProgressChart() {
         max: 100,
         ticks: {
           stepSize: 25,
-          color: '#8b8ba3',
+          color: '#7B8794',
           font: { size: 11 },
         },
         grid: { color: 'rgba(0,0,0,0.04)' },
@@ -89,7 +92,7 @@ function ProgressChart() {
       },
       x: {
         ticks: {
-          color: '#8b8ba3',
+          color: '#7B8794',
           font: { size: 11 },
         },
         grid: { display: false },
