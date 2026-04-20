@@ -13,7 +13,7 @@ import SessionResults from './components/SessionResults';
 import HistoryView from './components/HistoryView';
 import InterviewGuides from './components/InterviewGuides';
 
-// All difficulty levels use 15 questions — difficulty affects complexity, not length
+// Easy/Medium: 15 questions. Hard: 17 questions (adds company-context depth).
 
 function App() {
   const [currentUser, setCurrentUserState] = useState(() => getCurrentUser());
@@ -228,6 +228,8 @@ function App() {
                 questions={sessionQuestions}
                 onSessionEnd={handleSessionEnd}
                 difficulty={difficulty}
+                jobTitle={selectedJob?.title || ''}
+                userName={userName}
               />
             </>
           )}

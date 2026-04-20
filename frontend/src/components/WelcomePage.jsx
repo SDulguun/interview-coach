@@ -100,20 +100,20 @@ function WelcomePage({ onStart }) {
           <h2>{lang === 'mn' ? 'Дасгалын горимууд' : 'Practice Modes'}</h2>
           <div className="landing-session-cards">
             <div className="landing-session-card">
-              <div className="session-card-number">5</div>
-              <h3>{t('session_type_quick')}</h3>
-              <p>{lang === 'mn' ? '~8 минут · Гол асуултууд' : '~8 min · Key questions'}</p>
+              <div className="session-card-number">15</div>
+              <h3>{lang === 'mn' ? 'Хөнгөн' : 'Easy'}</h3>
+              <p>{lang === 'mn' ? '~25 минут · Энгийн асуултууд' : '~25 min · Straightforward questions'}</p>
             </div>
             <div className="landing-session-card featured">
               <div className="session-card-badge">{lang === 'mn' ? 'Санал болгох' : 'Recommended'}</div>
-              <div className="session-card-number">12</div>
-              <h3>{lang === 'mn' ? 'Стандарт ярилцлага' : 'Standard Interview'}</h3>
-              <p>{lang === 'mn' ? '~20 минут · Бүрэн бүтэцтэй' : '~20 min · Full structure'}</p>
+              <div className="session-card-number">15</div>
+              <h3>{lang === 'mn' ? 'Дунд' : 'Medium'}</h3>
+              <p>{lang === 'mn' ? '~25 минут · Бүрэн бүтэцтэй' : '~25 min · Full structure'}</p>
             </div>
             <div className="landing-session-card">
-              <div className="session-card-number">15</div>
-              <h3>{lang === 'mn' ? 'Бүрэн ярилцлага' : 'Full Mock Interview'}</h3>
-              <p>{lang === 'mn' ? '~30 минут · Нарийвчилсан' : '~30 min · Comprehensive'}</p>
+              <div className="session-card-number">17</div>
+              <h3>{lang === 'mn' ? 'Хүнд' : 'Hard'}</h3>
+              <p>{lang === 'mn' ? '~30 минут · Нарийвчилсан' : '~30 min · Includes company-context questions'}</p>
             </div>
           </div>
         </div>

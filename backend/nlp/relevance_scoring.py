@@ -99,8 +99,9 @@ def compute_tfidf_relevance(response: str, job_description: str) -> float:
 def compute_keyword_relevance(response: str, required_skills: str) -> dict:
     """Match response against required skills using SKILL_KEYWORDS.
 
-    Uses concept-level matching: checks for synonyms and related terms,
-    not just exact skill name matches.
+    Uses concept-level matching: checks for synonyms, related terms,
+    and morphological variants — not just exact skill name matches.
+    If the user clearly demonstrates a concept indirectly, it counts.
     """
     if not response or not required_skills:
         return {"score": 0.0, "matched_skills": [], "missing_skills": [], "total_required": 0}
@@ -117,20 +118,30 @@ def compute_keyword_relevance(response: str, required_skills: str) -> dict:
             continue
 
         found = False
-        # Check concept map first
+        # Check concept map first (expanded synonyms)
         if skill_clean in SKILL_KEYWORDS:
             keywords = SKILL_KEYWORDS[skill_clean]
             if any(kw in response_lower for kw in keywords):
                 found = True
-        else:
+
+        if not found:
             # Direct match: check if skill name appears in response
             if skill_clean.lower() in response_lower:
                 found = True
-            else:
-                # Try partial word match for compound skills
-                words = skill_clean.lower().split()
-                if any(w in response_lower for w in words if len(w) > 3):
-                    found = True
+
+        if not found:
+            # Try partial word match for compound skills (3+ char words)
+            words = skill_clean.lower().split()
+            if any(w in response_lower for w in words if len(w) > 3):
+                found = True
+
+        if not found:
+            # Morphological stem matching for Mongolian verb forms
+            # e.g. "удирдсан", "удирдаж", "удирддаг" all share stem "удирд"
+            skill_lower = skill_clean.lower()
+            stems = _extract_stems(skill_lower)
+            if stems and any(stem in response_lower for stem in stems):
+                found = True
 
         if found:
             matched.append(skill_clean)
@@ -146,6 +157,25 @@ def compute_keyword_relevance(response: str, required_skills: str) -> dict:
         "missing_skills": missing,
         "total_required": total,
     }
+
+
+def _extract_stems(text: str) -> list[str]:
+    """Extract likely Mongolian word stems from a skill phrase for fuzzy matching."""
+    stems = []
+    for word in text.split():
+        if len(word) < 4:
+            continue
+        # Remove common Mongolian suffixes to get approximate stem
+        for suffix in ['сан', 'сэн', 'сон', 'даг', 'дэг', 'дог', 'лах', 'лэх',
+                       'лал', 'лэл', 'чилгээ', 'лгаа', 'ийн', 'ын', 'ний']:
+            if word.endswith(suffix) and len(word) - len(suffix) >= 3:
+                stems.append(word[:len(word) - len(suffix)])
+                break
+        else:
+            # Use first 4+ chars as approximate stem
+            if len(word) >= 5:
+                stems.append(word[:max(4, len(word) - 2)])
+    return stems
 
 
 def compute_relevance(

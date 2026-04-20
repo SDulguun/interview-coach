@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useLang } from '../lang';
-import illustDesk from '../assets/illust-desk.jpg';
+const PHASE_HINTS = {
+  setup: { mn: 'Ажлын байр, түвшин сонгоод бэлтгэл хийнэ', en: 'Choose a role and difficulty to begin' },
+  interview: { mn: 'Асуултуудад тодорхой, жишээтэй хариулаарай', en: 'Answer clearly with examples' },
+  results: { mn: 'Үр дүнгээ хянаж, давуу ба сул талуудаа олоорой', en: 'Review your strengths and areas to improve' },
+  history: { mn: 'Өмнөх ярилцлагуудын түүх', en: 'Past interview sessions' },
+  guides: { mn: 'Ярилцлагын бэлтгэлийн заавар', en: 'Interview preparation guides' },
+};
 
 function Layout({ children, phase, onNavigate, onLogout, currentUser }) {
   const { lang, t, toggleLang } = useLang();
@@ -83,8 +89,8 @@ function Layout({ children, phase, onNavigate, onLogout, currentUser }) {
           ))}
         </nav>
 
-        <div className="sidebar-illustration">
-          <img src={illustDesk} alt="" />
+        <div className="sidebar-hint">
+          <p>{(PHASE_HINTS[phase] || PHASE_HINTS.setup)[lang]}</p>
         </div>
 
         <div className="sidebar-footer">

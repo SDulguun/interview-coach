@@ -1,6 +1,15 @@
-// Simple auth utility for MVP — localStorage-based accounts
+// Auth utility — localStorage-based accounts with SHA-256 hashing
 
-function simpleHash(str) {
+async function sha256(str) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Synchronous fallback hash for migration/compat
+function syncHash(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
@@ -20,16 +29,18 @@ function saveUsers(users) {
   localStorage.setItem('interview-users', JSON.stringify(users));
 }
 
-export function registerUser(username, password, displayName) {
+export async function registerUser(username, password, displayName) {
   const users = getUsers();
   if (users.find(u => u.username === username.toLowerCase())) {
     return { success: false, error: 'username_taken' };
   }
   const userId = 'u_' + Date.now().toString(36);
+  const hashedPassword = await sha256(password);
   const user = {
     id: userId,
     username: username.toLowerCase(),
-    hashedPassword: simpleHash(password),
+    hashedPassword,
+    hashVersion: 2, // SHA-256
     displayName: displayName || username,
   };
   users.push(user);
@@ -37,11 +48,23 @@ export function registerUser(username, password, displayName) {
   return { success: true, user };
 }
 
-export function loginUser(username, password) {
+export async function loginUser(username, password) {
   const users = getUsers();
   const user = users.find(u => u.username === username.toLowerCase());
   if (!user) return { success: false, error: 'user_not_found' };
-  if (user.hashedPassword !== simpleHash(password)) return { success: false, error: 'wrong_password' };
+
+  // Support both old (syncHash) and new (SHA-256) passwords
+  if (user.hashVersion === 2) {
+    const hash = await sha256(password);
+    if (user.hashedPassword !== hash) return { success: false, error: 'wrong_password' };
+  } else {
+    // Legacy: migrate on successful login
+    if (user.hashedPassword !== syncHash(password)) return { success: false, error: 'wrong_password' };
+    // Upgrade hash
+    user.hashedPassword = await sha256(password);
+    user.hashVersion = 2;
+    saveUsers(users);
+  }
   return { success: true, user };
 }
 

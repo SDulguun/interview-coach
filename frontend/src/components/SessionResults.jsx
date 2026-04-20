@@ -489,18 +489,25 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
                   </>
                 )}
 
-                {/* Sample answer — always shown for reference */}
-                {question?.sample_answer && (
+                {/* Sample answer — only shown when it would genuinely help */}
+                {question?.sample_answer && !isStrong && (
                   <div className="result-section sample-answer-block">
                     <label>{t('sample_answer')}</label>
                     {!isGood && qImprovements.length > 0 && (
                       <p className="sample-answer-context">
                         {lang === 'mn'
-                          ? `Дараах хариулт "${qImprovements[0].slice(0, 60)}${qImprovements[0].length > 60 ? '...' : ''}" сайжруулалтыг хэрхэн шийдвэрлэж болохыг харуулна:`
-                          : `This example shows how to address "${qImprovements[0].slice(0, 60)}${qImprovements[0].length > 60 ? '...' : ''}":`}
+                          ? `Дараах хариулт "${cleanMetrics(qImprovements[0]).slice(0, 60)}${qImprovements[0].length > 60 ? '...' : ''}" сайжруулалтыг хэрхэн шийдвэрлэж болохыг харуулна:`
+                          : `This example shows how to address "${cleanMetrics(qImprovements[0]).slice(0, 60)}${qImprovements[0].length > 60 ? '...' : ''}":`}
                       </p>
                     )}
-                    {isGood && (
+                    {isGood && qImprovements.length > 0 && (
+                      <p className="sample-answer-context">
+                        {lang === 'mn'
+                          ? `Сайн хариулт! "${cleanMetrics(qImprovements[0]).slice(0, 60)}${qImprovements[0].length > 60 ? '...' : ''}" дээр анхаарвал бүр ч сайжирна:`
+                          : `Good answer! To further improve on "${cleanMetrics(qImprovements[0]).slice(0, 60)}${qImprovements[0].length > 60 ? '...' : ''}", see this example:`}
+                      </p>
+                    )}
+                    {isGood && qImprovements.length === 0 && (
                       <p className="sample-answer-context">
                         {lang === 'mn'
                           ? 'Жишиг хариултыг харьцуулж, хариултаа улам сайжруулах боломжтой:'

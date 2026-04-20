@@ -8,9 +8,10 @@ export default function AuthPage({ onLogin, onGuest }) {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { t, lang } = useLang();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
 
@@ -18,25 +19,39 @@ export default function AuthPage({ onLogin, onGuest }) {
       setError(t('auth_error_fields_required'));
       return;
     }
+    if (password.trim().length < 4) {
+      setError(lang === 'mn' ? 'Нууц үг дор хаяж 4 тэмдэгт байх ёстой' : 'Password must be at least 4 characters');
+      return;
+    }
 
-    if (mode === 'register') {
-      if (!displayName.trim()) {
-        setError(t('auth_error_fields_required'));
-        return;
+    setLoading(true);
+    try {
+      if (mode === 'register') {
+        if (!displayName.trim()) {
+          setError(t('auth_error_fields_required'));
+          setLoading(false);
+          return;
+        }
+        const result = await registerUser(username.trim(), password, displayName.trim());
+        if (!result.success) {
+          setError(t(`auth_error_${result.error}`));
+          setLoading(false);
+          return;
+        }
+        onLogin(result.user);
+      } else {
+        const result = await loginUser(username.trim(), password);
+        if (!result.success) {
+          setError(t(`auth_error_${result.error}`));
+          setLoading(false);
+          return;
+        }
+        onLogin(result.user);
       }
-      const result = registerUser(username.trim(), password, displayName.trim());
-      if (!result.success) {
-        setError(t(`auth_error_${result.error}`));
-        return;
-      }
-      onLogin(result.user);
-    } else {
-      const result = loginUser(username.trim(), password);
-      if (!result.success) {
-        setError(t(`auth_error_${result.error}`));
-        return;
-      }
-      onLogin(result.user);
+    } catch {
+      setError(lang === 'mn' ? 'Алдаа гарлаа. Дахин оролдоно уу.' : 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -79,6 +94,7 @@ export default function AuthPage({ onLogin, onGuest }) {
               onChange={e => setUsername(e.target.value)}
               placeholder={lang === 'mn' ? 'Хэрэглэгчийн нэр' : 'Username'}
               autoComplete="username"
+              disabled={loading}
             />
           </div>
 
@@ -90,6 +106,7 @@ export default function AuthPage({ onLogin, onGuest }) {
               onChange={e => setPassword(e.target.value)}
               placeholder={lang === 'mn' ? 'Нууц үг' : 'Password'}
               autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+              disabled={loading}
             />
           </div>
 
@@ -101,18 +118,23 @@ export default function AuthPage({ onLogin, onGuest }) {
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
                 placeholder={lang === 'mn' ? 'Жнь: Б. Болд' : 'e.g. B. Bold'}
+                disabled={loading}
               />
             </div>
           )}
 
           {error && <div className="auth-error">{error}</div>}
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-            {mode === 'login' ? t('auth_login') : t('auth_register')}
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+            {loading ? (
+              <><span className="spinner-small" /> {lang === 'mn' ? 'Уншиж байна...' : 'Loading...'}</>
+            ) : (
+              mode === 'login' ? t('auth_login') : t('auth_register')
+            )}
           </button>
         </form>
 
-        <button className="auth-guest-btn" onClick={onGuest}>
+        <button className="auth-guest-btn" onClick={onGuest} disabled={loading}>
           {t('auth_guest')}
         </button>
         <p className="auth-guest-hint">{t('auth_guest_hint')}</p>

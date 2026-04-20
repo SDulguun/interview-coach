@@ -47,7 +47,8 @@
 //        → achievement → pressure → strengths → weaknesses → company-fit → closing
 const EASY_PICKS   = [0, 1, 3, 5, 6, 8, 12, 17, 10, 4, 18, 11, 13, 2, 14];
 const MEDIUM_PICKS = [0, 1, 3, 5, 6, 7, 8, 10, 11, 4, 9, 12, 13, 2, 14];
-const HARD_PICKS   = [0, 1, 3, 7, 9, 15, 16, 19, 20, 4, 10, 5, 6, 2, 14];
+// Hard: 17 questions — adds 2 extra company-context for deeper interview
+const HARD_PICKS   = [0, 1, 3, 7, 9, 15, 16, 19, 20, 4, 10, 5, 6, 21, 22, 2, 14];
 
 // ─── Question Bank ─────────────────────────────────────────────────
 const questionBank = {
@@ -847,6 +848,61 @@ const questionBank = {
   ],
 };
 
+// ─── Difficulty-specific question wording overrides ────────────────
+// Easy: simpler, more direct, lower ambiguity
+// Hard: deeper reasoning, more ambiguity, tradeoffs, company-context
+// Medium: uses the base question text as-is
+const DIFFICULTY_OVERRIDES = {
+  easy: {
+    introduction:        { mn: 'Нэр, мэргэжилээ товч хэлнэ үү.', en: 'Please briefly introduce yourself.' },
+    motivation_role:     { mn: 'Энэ мэргэжлийг яагаад сонгосон бэ?', en: 'Why did you choose this profession?' },
+    motivation_company:  { mn: 'Манай байгууллагын юу нь таныг сонирхуулсан бэ?', en: 'What interests you about our company?' },
+    experience:          { mn: 'Өмнөх ажлын туршлагаасаа товч ярина уу.', en: 'Tell me briefly about your previous work experience.' },
+    achievement:         { mn: 'Хамгийн бахархдаг нэг амжилтаа хэлнэ үү.', en: 'Share one achievement you are most proud of.' },
+    strengths:           { mn: 'Өөрийн хамгийн чухал давуу талаа нэрлэнэ үү.', en: 'What is your main strength?' },
+    weaknesses:          { mn: 'Юуг сайжруулах хэрэгтэй гэж бодож байна вэ?', en: 'What would you like to improve about yourself?' },
+    behavioral_teamwork: { mn: 'Багаар ажилласан нэг туршлагаасаа ярина уу.', en: 'Tell me about a time you worked in a team.' },
+    technical:           { mn: 'Ажилдаа ямар хэрэгсэл, арга барил ашигладаг вэ?', en: 'What tools or methods do you use in your work?' },
+    learning:            { mn: 'Сүүлийн үед шинээр юу суралцсан бэ?', en: 'What have you learned recently?' },
+    pressure:            { mn: 'Ажил их байхад хэрхэн зохицдог вэ?', en: 'How do you handle a busy workload?' },
+    goals:               { mn: 'Ирээдүйд юу хийхийг хүсэж байна вэ?', en: 'What do you want to do in the future?' },
+    closing:             { mn: 'Бидэнд асуух зүйл байна уу?', en: 'Do you have any questions for us?' },
+    values:              { mn: 'Ажлын байранд юу хамгийн чухал гэж бодож байна вэ?', en: 'What do you value most in a workplace?' },
+    adaptability:        { mn: 'Шинэ зүйлд хэрхэн дасдаг вэ?', en: 'How do you adapt to new things?' },
+  },
+  hard: {
+    introduction:           { mn: 'Мэргэжлийн замналаа товч танилцуулж, энэ албан тушаалд хэрхэн нийцэхээ тайлбарлана уу.', en: 'Walk me through your career trajectory and explain how it positions you for this role.' },
+    motivation_role:        { mn: 'Энэ салбарт урт хугацаанд ажиллах сэдэл тань юу вэ? Сорилтуудыг хэрхэн давж байна вэ?', en: 'What sustains your motivation in this field long-term? How do you push through challenges?' },
+    motivation_company:     { mn: 'Манай байгууллагын стратеги болон зах зээл дэх байр суурийн талаар юу мэдэж байна вэ? Та ямар үнэ цэнэ нэмэх вэ?', en: 'What do you know about our strategy and market position? What unique value would you bring?' },
+    experience:             { mn: 'Хамгийн нарийн төвөгтэй төслийн талаар ярина уу. Ямар trade-off шийдвэр гаргасан бэ? Одоо юуг өөрөөр хийх вэ?', en: 'Tell me about your most complex project. What trade-offs did you make? What would you do differently now?' },
+    achievement:            { mn: 'Хэмжигдэхүйц нөлөө үзүүлсэн хамгийн чухал амжилтаа тоогоор баталгаажуулж ярина уу. Ямар саад бэрхшээл давсан бэ?', en: 'Describe your most impactful achievement with measurable results. What obstacles did you overcome?' },
+    behavioral_challenge:   { mn: 'Мэргэжлийн хувьд хамгийн хүнд шийдвэр гаргасан тохиолдлоосоо ярина уу. Бүрэн мэдээлэлгүй нөхцөлд юу хийсэн бэ?', en: 'Tell me about the hardest professional decision you made with incomplete information. How did you weigh the risks?' },
+    problem_solving:        { mn: 'Техникийн хувьд нарийн төвөгтэй, олон талт хүчин зүйлтэй асуудлыг системтэйгээр шийдвэрлэсэн жишээ хэлнэ үү.', en: 'Describe a technically complex problem with multiple contributing factors. How did you systematically diagnose and resolve it?' },
+    technical_2:            { mn: 'Чанар болон хурд хоёрыг хэрхэн тэнцвэржүүлдэг вэ? Тодорхой жишээгээр тайлбарлана уу.', en: 'How do you balance quality vs speed? Give a concrete example of making that trade-off.' },
+    leadership:             { mn: 'Багийн гүйцэтгэл муудаж байсан үед удирдлагын арга барилаа хэрхэн тохируулсан бэ?', en: 'Describe a time when team performance was declining. How did you adapt your leadership approach?' },
+    scenario:               { mn: 'Таны хийсэн ажил бүтэлгүйтэж, удирдлага болон харилцагчдад нөлөөлсөн гэж бодъё. Яг юу хийх вэ? Алхам алхмаар тайлбарлана уу.', en: 'Imagine your work failed and impacted leadership and clients. Walk me through your exact response, step by step.' },
+    company_context:        { mn: 'Манай байгууллага зах зээлд шинэ өрсөлдөгч гарч ирсэн нөхцөлд та мэргэжлийн хувьд ямар стратегийн санал оруулах вэ?', en: 'If a new competitor disrupted our market, what strategic recommendations would you make in your area of expertise?' },
+    closing:                { mn: 'Энэ албан тушаал болон манай байгууллагын стратегийн талаар асуух зүйл байна уу?', en: 'Do you have questions about this role or our strategic direction?' },
+  },
+};
+
+/**
+ * Apply difficulty-specific wording overrides to a question.
+ * Easy → simpler wording; Hard → deeper, more demanding wording.
+ * Medium uses base text unchanged.
+ */
+function applyDifficultyOverride(question, difficulty) {
+  if (difficulty === 'medium' || !question) return question;
+  const overrides = DIFFICULTY_OVERRIDES[difficulty];
+  if (!overrides) return question;
+  const override = overrides[question.category];
+  if (!override) return question;
+  // Detect language from original question (simple heuristic)
+  const isEnglish = /^[A-Za-z]/.test(question.question.trim());
+  const newText = isEnglish ? (override.en || question.question) : (override.mn || question.question);
+  return { ...question, question: newText };
+}
+
 // ─── Question selection logic ──────────────────────────────────────
 
 /**
@@ -863,7 +919,7 @@ export function getLocalQuestions(role, difficulty = 'medium') {
   if (difficulty === 'easy') picks = EASY_PICKS;
   else if (difficulty === 'hard') picks = HARD_PICKS;
   else picks = MEDIUM_PICKS;
-  return picks.map(i => bank[i]).filter(Boolean);
+  return picks.map(i => bank[i]).filter(Boolean).map(q => applyDifficultyOverride(q, difficulty));
 }
 
 /**
@@ -948,7 +1004,7 @@ export function getSmartQuestions(role, difficulty = 'medium', userId = null) {
 
   picks = [picks[0], ...middle, picks[picks.length - 1]];
 
-  const selected = picks.map(i => bank[i]).filter(Boolean);
+  const selected = picks.map(i => bank[i]).filter(Boolean).map(q => applyDifficultyOverride(q, difficulty));
   const selectedIds = selected.map(q => q.id);
 
   // Store last 2 sessions for repeat-avoidance

@@ -30,8 +30,9 @@ function Dashboard({
       key: 'easy',
       label: t('difficulty_easy'),
       desc: lang === 'mn'
-        ? 'Энгийн асуултууд, ерөнхий ярилцлагын бүтэц. Эхлэн суралцагчдад тохиромжтой.'
-        : 'Straightforward questions, standard structure. Good for beginners.',
+        ? 'Энгийн, шууд асуултууд. Бага хоёрдмол утгатай. Анхлан суралцагчдад тохиромжтой.'
+        : 'Simple, direct questions. Low ambiguity. Great for beginners.',
+      questionCount: 15,
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
@@ -42,8 +43,9 @@ function Dashboard({
       key: 'medium',
       label: t('difficulty_medium'),
       desc: lang === 'mn'
-        ? 'Жинхэнэ ярилцлагатай адил түвшин. Туршлага, жишээ шаарддаг асуултууд.'
-        : 'Real interview level. Requires examples and structured answers.',
+        ? 'Жинхэнэ ярилцлагын түвшин. Жишээ, туршлага шаарддаг давхар асуултууд.'
+        : 'Real interview level. Layered behavioral questions requiring examples.',
+      questionCount: 15,
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
@@ -55,8 +57,9 @@ function Dashboard({
       key: 'hard',
       label: t('difficulty_hard'),
       desc: lang === 'mn'
-        ? 'Гүнзгий мэргэжлийн, нөхцөл байдлын шинжилгээ, удирдлагын асуултууд.'
-        : 'Deep technical, scenario analysis, and leadership questions.',
+        ? 'Гүнзгий шинжилгээ, trade-off, удирдлагын болон компанийн нөхцөлт асуултууд. Ахлах түвшний ярилцлага.'
+        : 'Deep analysis, trade-offs, leadership and company-context questions. Senior-level interview.',
+      questionCount: 17,
       icon: (
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -195,7 +198,7 @@ function Dashboard({
                 <span className="session-mode-icon">{mode.icon}</span>
                 <span className="session-mode-label">{mode.label}</span>
                 <span className="session-mode-desc">{mode.desc}</span>
-                <span className="session-mode-time">15 {lang === 'mn' ? 'асуулт' : 'questions'} · ~25 {t('minutes')}</span>
+                <span className="session-mode-time">{mode.questionCount || 15} {lang === 'mn' ? 'асуулт' : 'questions'} · ~{mode.questionCount === 17 ? '30' : '25'} {t('minutes')}</span>
               </button>
             ))}
           </div>
@@ -228,7 +231,7 @@ function Dashboard({
             </div>
             <div className="summary-stat">
               <svg className="summary-stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span className="summary-stat-value">15</span>
+              <span className="summary-stat-value">{active.questionCount || 15}</span>
               <span className="summary-stat-label">{t('progress')}</span>
             </div>
             <div className="summary-stat">
