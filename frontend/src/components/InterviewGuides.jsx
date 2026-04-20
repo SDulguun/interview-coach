@@ -437,48 +437,44 @@ function InterviewGuides() {
         </div>
       </div>
 
-      <div className="guides-layout">
-        {/* Guide navigation */}
-        <div className="guides-nav">
-          {guides.map((guide) => (
-            <button
-              key={guide.key}
-              className={`guides-nav-item ${activeGuide === guide.key ? 'active' : ''}`}
-              onClick={() => setActiveGuide(guide.key)}
-            >
-              {guide.icon}
-              <span>{t(guide.titleKey)}</span>
-            </button>
-          ))}
-        </div>
+      <div className="guides-tabs">
+        {guides.map((guide) => (
+          <button
+            key={guide.key}
+            className={`guides-tab ${activeGuide === guide.key ? 'active' : ''}`}
+            onClick={() => setActiveGuide(guide.key)}
+          >
+            {guide.icon}
+            <span>{t(guide.titleKey)}</span>
+          </button>
+        ))}
+      </div>
 
-        {/* Guide content */}
-        <div className="guides-content card">
-          <h2>{t(current.titleKey)}</h2>
-          <p className="guides-summary">{content.summary}</p>
+      <div className="guides-content card">
+        <h2>{t(current.titleKey)}</h2>
+        <p className="guides-summary">{content.summary}</p>
 
-          {isCvTool ? (
-            <CvJdTool />
-          ) : (
-            <>
-              <div className="guides-points">
-                {content.points.map((point, i) => (
-                  <div key={i} className="guides-point">
-                    <span className="guides-point-num">{i + 1}</span>
-                    <p>{point}</p>
-                  </div>
-                ))}
-              </div>
-
-              {content.example && (
-                <div className="guides-example">
-                  <label>{lang === 'mn' ? 'Жишээ' : 'Example'}</label>
-                  <p>{content.example}</p>
+        {isCvTool ? (
+          <CvJdTool />
+        ) : (
+          <>
+            <div className="guides-points">
+              {content.points.map((point, i) => (
+                <div key={i} className="guides-point">
+                  <span className="guides-point-num">{i + 1}</span>
+                  <p>{point}</p>
                 </div>
-              )}
-            </>
-          )}
-        </div>
+              ))}
+            </div>
+
+            {content.example && (
+              <div className="guides-example">
+                <label>{lang === 'mn' ? 'Жишээ' : 'Example'}</label>
+                <p>{content.example}</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
