@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLang } from '../lang';
 import SetupTabs from './SetupTabs';
-import illustResume from '../assets/illust-resume-pencil.jpg';
+import illustResume from '../assets/illust-resume-pencil.png';
 
 function Dashboard({
   selectedJob,

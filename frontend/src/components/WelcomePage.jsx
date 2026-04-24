@@ -1,6 +1,6 @@
 import { useLang } from '../lang';
-import illustInterview from '../assets/illust-interview.jpg';
-import illustResumes from '../assets/illust-resumes.jpg';
+import illustInterview from '../assets/illust-interview.png';
+import illustResumes from '../assets/illust-resumes.png';
 
 function WelcomePage({ onStart }) {
   const { t, lang, toggleLang } = useLang();

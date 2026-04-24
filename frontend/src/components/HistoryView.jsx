@@ -1,7 +1,7 @@
 import { useLang } from '../lang';
 import ProgressChart from './ProgressChart';
 import SessionHistory from './SessionHistory';
-import illustAnalytics from '../assets/illust-analytics.jpg';
+import illustAnalytics from '../assets/illust-analytics.png';
 
 function HistoryView({ onStartNew }) {
   const { t } = useLang();

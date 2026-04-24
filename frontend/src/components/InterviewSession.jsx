@@ -73,32 +73,78 @@ function pickRandom(arr) {
 
 const ACK_POOLS = {
   short: {
-    mn: ['Баярлалаа.', 'Ойлголоо.', 'За, ойлголоо.'],
-    en: ['Thank you.', 'Understood.', 'Alright, noted.'],
+    mn: ['Ойлголоо, баярлалаа.', 'За, ойлголоо. Үргэлжлүүлье.', 'Баярлалаа. Цааш үргэлжлүүлье.'],
+    en: ['Got it, thank you.', 'Alright, thanks — let\'s move on.', 'Thank you. Let\'s continue.'],
   },
   detailed_data: {
-    mn: ['Тоон үзүүлэлт дурдсанд баярлалаа, маш тодорхой байна.', 'Нарийвчилсан мэдээлэл маш сайн байна.'],
-    en: ['Thank you for those specific numbers, that gives a clear picture.', 'Appreciate the detailed information.'],
+    mn: [
+      'Тоон үзүүлэлтээ дурдсанд баярлалаа — ингэснээр таны гаргасан үр дүн маш тодорхой харагдаж байна.',
+      'Нарийвчилсан мэдээлэл их тустай байлаа. Ийм нотолгоо ярилцлагыг үнэмшилтэй болгодог.',
+    ],
+    en: [
+      'Thank you for the specific numbers — it really helps to see the concrete impact of your work.',
+      'Appreciate the detailed breakdown, that kind of evidence makes your answer very convincing.',
+    ],
   },
   teamwork: {
-    mn: ['Багийн ажлын туршлагаа сайн тайлбарлалаа.', 'Хамтын ажиллагааны жишээ сонирхолтой байна.'],
-    en: ['Great description of your teamwork experience.', 'Interesting example of collaboration.'],
+    mn: [
+      'Багийн ажлын жишээ тань сайн байлаа — бусадтай хэрхэн хамтардаг нь тодорхой харагдлаа.',
+      'Хамтын ажиллагааны энэ жишээ их сонирхолтой байв, баярлалаа.',
+    ],
+    en: [
+      'That\'s a solid teamwork example — I can see how you collaborate with others.',
+      'Really interesting example of working together, thank you for sharing that.',
+    ],
   },
   leadership: {
-    mn: ['Удирдлагын туршлагаа сайн тайлбарлалаа.'],
-    en: ['Good insight into your leadership experience.'],
+    mn: ['Удирдлагын туршлагаа маш сайн тайлбарлалаа. Шийдвэр гаргах арга барил тань тодорхой байна.'],
+    en: ['Good insight into your leadership — your decision-making approach comes through clearly.'],
   },
   challenge: {
-    mn: ['Бэрхшээлтэй нөхцөлд хэрхэн зохицсоноо сайн тайлбарлалаа.'],
-    en: ['Good explanation of how you handled that challenge.'],
+    mn: ['Бэрхшээлтэй нөхцөлд хэрхэн зохицсоноо сайн тайлбарлалаа. Энэ туршлага үнэтэй.'],
+    en: ['Good explanation of how you handled that challenge — that kind of experience is valuable.'],
   },
   achievement: {
-    mn: ['Гаргасан үр дүнгээ сайн тайлбарлалаа.'],
-    en: ['Well explained results.'],
+    mn: ['Гаргасан үр дүнгээ сайн дүрсэллээ. Бодит жишээ нотолгоо болдог.'],
+    en: ['Well explained results — concrete examples really strengthen an answer.'],
   },
   learning: {
-    mn: ['Суралцах хандлагаа сайн харуулж байна.'],
-    en: ['Your learning mindset comes through well.'],
+    mn: ['Суралцах хандлага тань сайн харагдлаа. Шинэ зүйл авахад бэлэн байдаг нь чухал чанар.'],
+    en: ['Your learning mindset comes through clearly — being open to new things is a valuable quality.'],
+  },
+  dontknow: {
+    mn: [
+      'Үүнийг шууд хэлсэнд баярлалаа — үгүй хариулах нь ч үнэнч зан. Дараагийн асуултад шилжье.',
+      'Зүгээр ээ, бүгдийг мэдэх албагүй. Цааш үргэлжлүүлье.',
+      'Үнэнч хариулсанд баярлалаа. Дараагийн асуулт руу шилжье.',
+    ],
+    en: [
+      'Appreciate the honest answer — it\'s okay not to know everything. Let\'s move to the next question.',
+      'No worries, thank you for being upfront. We\'ll continue.',
+      'That\'s fine, honesty matters. Let\'s try the next one.',
+    ],
+  },
+  too_short: {
+    mn: [
+      'Ойлголоо. Дараагийн асуултуудад бага зэрэг дэлгэрэнгүй хариулаарай — жишээ нэмвэл илүү тодорхой болно.',
+      'Баярлалаа. Дараа нь өөрийн туршлагаас жижиг жишээ дурдвал хариулт тань илүү бодит сонсогддог.',
+    ],
+    en: [
+      'Got it. For the next ones, a bit more detail — a quick example would make your answer stronger.',
+      'Thanks. Try adding a small example from your experience next time, it makes answers more tangible.',
+    ],
+  },
+  substantive: {
+    mn: [
+      'Маш сайн хариулт байлаа, нарийвчилсан тайлбар тань их тус болсон. Баярлалаа.',
+      'Энэ хариултад их баярлалаа — нөхцөл, үйлдэл, үр дүнг сайн холбож тайлбарласан.',
+      'Маш бүтэцтэй, тодорхой хариулт байв. Танд баярлалаа.',
+    ],
+    en: [
+      'Really solid answer — I appreciate how thorough your explanation was, thank you.',
+      'Thank you, you tied the situation, actions, and outcome together really well.',
+      'Very structured and clear — thanks for walking me through it.',
+    ],
   },
 };
 
@@ -178,16 +224,36 @@ const CONTINUATION_BRIDGES = {
   en: ['Let\'s move to the next question.', 'Let\'s continue.', '', ''],
 };
 
+const DONT_KNOW_PATTERNS = /^(\s*)(мэдэхгүй|мэдэхгүй\s*байна|хариулж\s*чадахгүй|санахгүй\s*байна|эргэлз|хэлж\s*мэдэхгүй|i\s*don'?t\s*know|idk|dunno|no\s*idea|not\s*sure|pass|skip|n\/?a)(\s*[.!?]*)?\s*$/i;
+
+function classifyAnswer(answerText) {
+  const trimmed = (answerText || '').trim();
+  if (!trimmed) return 'empty';
+  if (DONT_KNOW_PATTERNS.test(trimmed)) return 'dontknow';
+  const wc = trimmed.split(/\s+/).filter(Boolean).length;
+  if (wc <= 5) return 'dontknow_like';
+  if (wc < 15) return 'too_short';
+  if (wc > 60) return 'substantive';
+  return 'normal';
+}
+
 function pickAcknowledgment(answerText, questionCategory, lang) {
+  const kind = classifyAnswer(answerText);
+  if (kind === 'dontknow' || kind === 'empty') return pickRandom(ACK_POOLS.dontknow[lang] || ACK_POOLS.dontknow.mn);
+  if (kind === 'dontknow_like') return pickRandom(ACK_POOLS.too_short[lang] || ACK_POOLS.too_short.mn);
+  if (kind === 'too_short') return pickRandom(ACK_POOLS.too_short[lang] || ACK_POOLS.too_short.mn);
+
   const lower = answerText.toLowerCase();
   const wc = answerText.split(/\s+/).length;
-  if (wc < 15) return pickRandom(ACK_POOLS.short[lang] || ACK_POOLS.short.mn);
+
   if (/\d+/.test(answerText) && wc > 40) return pickRandom(ACK_POOLS.detailed_data[lang] || ACK_POOLS.detailed_data.mn);
   if (/баг|хамт|хамтар|team|collaborat|together/i.test(lower)) return pickRandom(ACK_POOLS.teamwork[lang] || ACK_POOLS.teamwork.mn);
   if (/удирд|манлайл|lead|manag|direct/i.test(lower)) return pickRandom(ACK_POOLS.leadership[lang] || ACK_POOLS.leadership.mn);
   if (/хүнд|бэрхшээл|асуудал|challeng|difficult|problem/i.test(lower)) return pickRandom(ACK_POOLS.challenge[lang] || ACK_POOLS.challenge.mn);
   if (/амжилт|хийсэн|бүтээсэн|achiev|accomplish|built|creat/i.test(lower)) return pickRandom(ACK_POOLS.achievement[lang] || ACK_POOLS.achievement.mn);
   if (/сурал|сурсан|learn|stud/i.test(lower)) return pickRandom(ACK_POOLS.learning[lang] || ACK_POOLS.learning.mn);
+  if (kind === 'substantive') return pickRandom(ACK_POOLS.substantive[lang] || ACK_POOLS.substantive.mn);
+
   const catPool = CATEGORY_ACKS[questionCategory];
   if (catPool) return pickRandom(catPool[lang] || catPool.mn);
   return pickRandom(GENERIC_ACKS[lang] || GENERIC_ACKS.mn);
@@ -222,24 +288,33 @@ const HARD_PROBES = {
 };
 
 function generateInterviewerReaction(answerText, questionCategory, nextQuestion, isLastQuestion, lang, diff) {
+  const answerKind = classifyAnswer(answerText);
+
   if (isLastQuestion) {
     if (questionCategory === 'closing' && looksLikeQuestion(answerText)) {
       return generateClosingResponse(answerText, lang);
     }
     return lang === 'mn'
-      ? 'Ярилцлагад оролцсонд маш их баярлалаа. Бид удахгүй эргэж холбогдох болно. Танд амжилт хүсье!'
-      : 'Thank you very much for your time today. We\'ll be in touch soon. Best of luck!';
+      ? 'Цагаа гарган ярилцлагад оролцсонд тань маш их баярлалаа. Бид удахгүй эргэж холбогдох болно — танд амжилт хүсье!'
+      : 'Thank you so much for taking the time today — we really enjoyed the conversation and will be in touch soon. Best of luck!';
   }
+
   const ack = pickAcknowledgment(answerText, questionCategory, lang);
+
+  // For don't-know or empty answers: skip bridges and probes — just move on warmly
+  if (answerKind === 'dontknow' || answerKind === 'empty' || answerKind === 'dontknow_like') {
+    return ack;
+  }
+
   const bridge = pickBridge(questionCategory, nextQuestion, lang);
 
-  // Hard mode: ~30% chance of a follow-up probe after the ack
-  if (diff === 'hard' && Math.random() < 0.3) {
+  // Hard mode: ~30% chance of a follow-up probe, but NOT on short / weak answers
+  if (diff === 'hard' && answerKind !== 'too_short' && Math.random() < 0.3) {
     const probe = pickRandom(HARD_PROBES[lang] || HARD_PROBES.mn);
     return [ack, probe, bridge].filter(Boolean).join(' ');
   }
 
-  // Easy mode: shorter, friendlier — skip bridge sometimes
+  // Easy mode: shorter, friendlier — often skip bridge
   if (diff === 'easy' && Math.random() < 0.4) {
     return ack;
   }
@@ -363,6 +438,8 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
   const [responseDisplayText, setResponseDisplayText] = useState('');
   const [responseTypingDone, setResponseTypingDone] = useState(false);
   const [isLastAnswer, setIsLastAnswer] = useState(false);
+  const [answerWordCount, setAnswerWordCount] = useState(0);
+  const [interviewerThinking, setInterviewerThinking] = useState(false);
 
   // Refs
   const mediaRecorderRef = useRef(null);
@@ -414,32 +491,53 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
     return () => clearTimeout(timer);
   }, [questionTypingDone, phase]);
 
-  // Response phase — typing animation + TTS
+  // Response phase — thinking pause → typing animation + TTS
   useEffect(() => {
     if (phase !== 'responding' || !responseMessage) return;
     setResponseDisplayText('');
     setResponseTypingDone(false);
-    const words = responseMessage.split(' ');
-    let i = 0;
-    const interval = setInterval(() => {
-      i++;
-      setResponseDisplayText(words.slice(0, i).join(' '));
-      if (i >= words.length) { clearInterval(interval); setResponseTypingDone(true); }
-    }, 75);
-    playTTSAudio(responseMessage);
-    return () => clearInterval(interval);
+    setInterviewerThinking(true);
+
+    // Thinking pause scales with user's answer length:
+    // short/skip → ~700ms, normal → ~1.3s, long substantive → up to ~3s
+    const thinkBase = 700;
+    const thinkPerWord = 25;
+    const thinkCap = 3200;
+    const thinkMs = Math.min(thinkBase + answerWordCount * thinkPerWord, thinkCap);
+
+    let typingInterval = null;
+    const thinkTimer = setTimeout(() => {
+      setInterviewerThinking(false);
+      const words = responseMessage.split(' ');
+      let i = 0;
+      typingInterval = setInterval(() => {
+        i++;
+        setResponseDisplayText(words.slice(0, i).join(' '));
+        if (i >= words.length) { clearInterval(typingInterval); typingInterval = null; setResponseTypingDone(true); }
+      }, 90);
+      playTTSAudio(responseMessage);
+    }, thinkMs);
+
+    return () => {
+      clearTimeout(thinkTimer);
+      if (typingInterval) clearInterval(typingInterval);
+      setInterviewerThinking(false);
+    };
   }, [phase, responseMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // After response typing is done → advance to next question (unless last)
+  // Pause scales slightly with response length so user can read longer replies.
   useEffect(() => {
     if (phase !== 'responding' || !responseTypingDone || isLastAnswer) return;
+    const respWc = (responseMessage || '').split(/\s+/).filter(Boolean).length;
+    const postPause = Math.min(2200 + respWc * 40, 4000);
     const timer = setTimeout(() => {
       setPhase('questioning');
       setQuestionTime(Date.now());
       setQuestionElapsed(0);
-    }, 2000);
+    }, postPause);
     return () => clearTimeout(timer);
-  }, [responseTypingDone, phase, isLastAnswer]);
+  }, [responseTypingDone, phase, isLastAnswer, responseMessage]);
 
   // Session timer
   useEffect(() => {
@@ -504,6 +602,8 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
 
     const response = generateInterviewerReaction(answerText, currentQuestion.category, nextQ, isLast, lang, difficulty);
 
+    const wc = (answerText || '').trim().split(/\s+/).filter(Boolean).length;
+    setAnswerWordCount(wc);
     setAnsweredPairs(prev => [...prev, pair]);
     setInputText('');
     setCurrentIndex(nextIndex);
@@ -874,8 +974,16 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               </div>
               <p className="ws-response-text">
-                {responseDisplayText}
-                {!responseTypingDone && <span className="typing-cursor">|</span>}
+                {interviewerThinking ? (
+                  <span className="ws-thinking-dots" aria-label="thinking">
+                    <span></span><span></span><span></span>
+                  </span>
+                ) : (
+                  <>
+                    {responseDisplayText}
+                    {!responseTypingDone && <span className="typing-cursor">|</span>}
+                  </>
+                )}
               </p>
             </div>
             {isLastAnswer && responseTypingDone && (
@@ -903,7 +1011,7 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
             {t('results_transcript')}
           </h3>
-          <div className="ws-transcript">
+          <div className="ws-transcript ws-transcript-compact">
             {answeredPairs.map((pair, i) => (
               <div key={i} className={`ws-transcript-item ${pair.skipped ? 'ws-transcript-skipped' : ''}`}>
                 <div className="ws-transcript-header">
@@ -911,15 +1019,13 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
                   <span className={`ws-q-tag tag-${pair.tag}`}>{t(`question_tag_${pair.tag}`)}</span>
                   <span className="ws-transcript-time">{formatTime(pair.timeTaken)}</span>
                 </div>
-                {pair.skipped ? (
+                {pair.skipped && (
                   <p className="ws-transcript-answer ws-skipped-label">{t('question_skipped')}</p>
-                ) : (
-                  <p className="ws-transcript-answer">{pair.answer.slice(0, 120)}{pair.answer.length > 120 ? '...' : ''}</p>
                 )}
               </div>
             ))}
             {answeredPairs.length === 0 && (
-              <p className="ws-transcript-empty">{lang === 'mn' ? 'Хариултууд энд харагдана' : 'Your answers will appear here'}</p>
+              <p className="ws-transcript-empty">{lang === 'mn' ? 'Хариулсан асуултууд энд харагдана' : 'Answered questions will appear here'}</p>
             )}
             <div ref={transcriptEndRef} />
           </div>

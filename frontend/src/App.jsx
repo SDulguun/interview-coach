@@ -32,7 +32,7 @@ function App() {
     const key = userKey(user?.id, 'name');
     return localStorage.getItem(key) || user?.displayName || '';
   });
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   function handleLogin(user) {
     setCurrentUser(user);
@@ -58,7 +58,11 @@ function App() {
   }
 
   function handleNavigate(key) {
-    if (key === 'setup' || key === 'interview') {
+    if (key === 'welcome') {
+      if (phase === 'interview' && !window.confirm(t('btn_back_confirm'))) return;
+      setError('');
+      setPhase('welcome');
+    } else if (key === 'setup' || key === 'interview') {
       if (phase === 'interview' && !window.confirm(t('btn_back_confirm'))) return;
       handleRestart();
     } else if (key === 'history') {
@@ -100,6 +104,14 @@ function App() {
     setSessionAnswers(answers);
     setLoading(true);
     setError('');
+
+    if (!answers || answers.length === 0) {
+      setError(t('err_no_answers'));
+      setLoading(false);
+      setPhase('setup');
+      return;
+    }
+
     try {
       const allSkills = [
         selectedJob?.required_skills || '',
@@ -154,8 +166,21 @@ function App() {
       localStorage.setItem(histKey, JSON.stringify(hist.slice(0, 20)));
       setPhase('results');
     } catch (err) {
-      console.error('Analysis failed:', err);
-      setError(t('err_analyze'));
+      console.error('Analysis failed:', err, err?.response?.data);
+      const detail = err?.response?.data?.detail;
+      if (detail === 'No answers provided') {
+        setError(t('err_no_answers'));
+      } else if (err?.code === 'ECONNABORTED' || /timeout/i.test(err?.message || '')) {
+        setError(lang === 'mn'
+          ? 'Шинжилгээ удаан үргэлжиллээ. Интернэт холболтоо шалгаад дахин оролдоно уу.'
+          : 'Analysis took too long. Check your connection and try again.');
+      } else if (!err?.response) {
+        setError(lang === 'mn'
+          ? 'Сервертэй холбогдож чадсангүй. Backend ажиллаж байгаа эсэхийг шалгаарай.'
+          : 'Could not reach the server. Please make sure the backend is running.');
+      } else {
+        setError(t('err_analyze'));
+      }
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import { useLang } from '../lang';
 import { classifyQuestion, formatTime, getScoreColor } from '../utils';
-import illustHighfive from '../assets/illust-highfive.jpg';
+import illustHighfive from '../assets/illust-highfive.png';
 
 // Clean raw metrics from feedback strings (e.g. "TTR 0.95", "WC: 45")
 function cleanMetrics(text) {

@@ -80,7 +80,7 @@ export async function analyzeBatch(answers, requiredSkills = '', totalDuration =
     answers,
     required_skills: requiredSkills,
     total_duration_seconds: totalDuration,
-  }, { timeout: 60000 });
+  }, { timeout: 180000 });
   return response.data;
 }
 
