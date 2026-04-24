@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import {
+  User, Clock, MessageSquare, BarChart3, Send, Mic, Square,
+  Pencil, FileText, Lightbulb, ArrowRight, AlertTriangle, Check, X,
+} from 'lucide-react';
 import { transcribeAudio, generateTTS } from '../api';
 import { useLang } from '../lang';
 import { classifyQuestion, formatTime, getQuestionPhase } from '../utils';
+import './interview-session.css';
 
 /* ============================================================
    TIME CONFIG — separate for text (writing) vs audio (voice)
@@ -885,7 +890,9 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
             </div>
 
             <div className="ws-question-panel">
-              <div className="ws-question-number">{currentIndex + 1}</div>
+              <div className="ws-question-number">
+                {lang === 'mn' ? `АСУУЛТ ${String(currentIndex + 1).padStart(2, '0')}` : `QUESTION ${String(currentIndex + 1).padStart(2, '0')}`}
+              </div>
               <p className="ws-question-text">
                 {questionDisplayText}
                 {!questionTypingDone && <span className="typing-cursor">|</span>}
