@@ -1,140 +1,150 @@
 import { useLang } from '../lang';
-import illustInterview from '../assets/illust-interview.png';
-import illustResumes from '../assets/illust-resumes.png';
+import { MessageSquare, TrendingUp, CheckCircle, ArrowRight, Play } from 'lucide-react';
+import { Button, Kbd, GlowBackground, PageTransition } from './ui';
+import './welcome-page.css';
 
-function WelcomePage({ onStart }) {
+function WelcomePage({ onStart, onOpenPalette }) {
   const { t, lang, toggleLang } = useLang();
 
+  const features = [
+    {
+      Icon: MessageSquare,
+      title: lang === 'mn' ? 'Бодит ярилцлагын дасгал' : 'Realistic mock interviews',
+      body: lang === 'mn'
+        ? '15 хүртэл асуулттай бүрэн ярилцлага — танилцуулга, сэдэл, туршлага, мэргэжлийн хэсгээр.'
+        : 'Full interviews with up to 15 questions covering introduction, motivation, experience, and technical topics.',
+    },
+    {
+      Icon: TrendingUp,
+      title: lang === 'mn' ? 'Дэлгэрэнгүй үнэлгээ' : 'Detailed feedback',
+      body: lang === 'mn'
+        ? 'Хариулт бүрийн бүтэц, агуулга, хамаарлыг шинжилж, тодорхой зөвлөмж өгнө.'
+        : 'Structure, content, and relevance analysis with clear improvement tips for every answer.',
+    },
+    {
+      Icon: CheckCircle,
+      title: lang === 'mn' ? '10+ мэргэжлийн салбар' : '10+ professional fields',
+      body: lang === 'mn'
+        ? 'IT, санхүү, маркетинг, боловсрол — салбар бүрт тохирсон асуулт.'
+        : 'Tailored questions for IT, finance, marketing, education, and more.',
+    },
+  ];
+
   return (
-    <div className="landing">
-      {/* Top Navigation */}
-      <header className="landing-nav">
-        <div className="landing-nav-inner">
-          <div className="landing-brand">
-            <div className="landing-brand-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
+    <PageTransition keyName="welcome">
+      <div className="landing">
+        <header className="landing-nav">
+          <div className="landing-nav-inner">
+            <div className="landing-brand">
+              <div className="landing-brand-icon">IC</div>
+              <span className="landing-brand-name">InterviewCoach</span>
             </div>
-            <span className="landing-brand-name">InterviewCoach</span>
+            <nav className="landing-nav-right">
+              <a className="landing-nav-link" href="#features">
+                {lang === 'mn' ? 'Бүтээгдэхүүн' : 'Product'}
+              </a>
+              <a className="landing-nav-link" href="#modes">
+                {lang === 'mn' ? 'Үнэ' : 'Pricing'}
+              </a>
+              <a className="landing-nav-link" href="#footer">
+                {lang === 'mn' ? 'Бүлгэм' : 'Community'}
+              </a>
+              <button
+                className="landing-kbd-hint"
+                onClick={() => onOpenPalette?.()}
+                aria-label="Open command palette"
+              >
+                <Kbd>⌘K</Kbd>
+              </button>
+              <button className="landing-lang-btn" onClick={toggleLang}>
+                {lang === 'mn' ? 'EN' : 'MN'}
+              </button>
+              <Button size="sm" onClick={onStart}>
+                {lang === 'mn' ? 'Эхлэх' : 'Start'}
+              </Button>
+            </nav>
           </div>
-          <div className="landing-nav-actions">
-            <button className="landing-lang-btn" onClick={toggleLang}>
-              <span className="landing-lang-badge">{lang.toUpperCase()}</span>
-              {lang === 'mn' ? 'English' : 'Монгол'}
-            </button>
-            <button className="landing-nav-cta" onClick={onStart}>
-              {t('welcome_cta')}
-            </button>
-          </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Hero Section */}
-      <section className="landing-hero">
-        <div className="landing-hero-content">
-          <div className="landing-hero-badge">
-            {lang === 'mn' ? 'Ярилцлагын бэлтгэл' : 'Interview Practice'}
+        <section className="landing-hero">
+          <GlowBackground color="#7c3aed" size={320} opacity={0.35} top={-60} left="30%" />
+          <GlowBackground color="#ec4899" size={220} opacity={0.2} bottom={-40} right="10%" />
+
+          <div className="landing-hero-tag float-y">
+            <span className="tag-dot" />
+            {lang === 'mn' ? 'Шинэ — Илтгэх дасгал' : 'New — speaking practice'}
           </div>
+
           <h1 className="landing-hero-title">
-            {lang === 'mn'
-              ? 'Ажлын ярилцлагандаа бэлдэж, итгэлтэй хариулаарай'
-              : 'Practice Your Answers. Walk In Confident.'}
+            {lang === 'mn' ? (
+              <>
+                <span>Ярилцлагын өмнөх</span>
+                <span className="gradient-text">сүүлийн бэлтгэл.</span>
+              </>
+            ) : (
+              <>
+                <span>Your last prep</span>
+                <span className="gradient-text">before the interview.</span>
+              </>
+            )}
           </h1>
-          <p className="landing-hero-desc">
+
+          <p className="landing-hero-sub">
             {lang === 'mn'
-              ? 'Бодит ярилцлагын асуултуудад дасгал хийж, хариулт бүрдээ дэлгэрэнгүй үнэлгээ аваарай. 10 гаруй салбарын мэргэжлийн асуултууд бэлэн.'
-              : 'Practice with real interview questions and get detailed feedback on every answer. Questions ready for 10+ professional fields.'}
+              ? 'Бодит асуултуудад дасгал хийж, хариулт бүрдээ дэлгэрэнгүй үнэлгээ аваарай.'
+              : 'Practice real questions and get detailed feedback on every answer.'}
           </p>
+
           <div className="landing-hero-actions">
-            <button className="landing-hero-cta" onClick={onStart}>
-              {t('pre_session_start')}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-            </button>
-            <span className="landing-hero-hint">
-              {lang === 'mn' ? '5-15 минутын дасгал · Үнэ төлбөргүй' : '5-15 min sessions · Free'}
-            </span>
+            <Button size="lg" onClick={onStart}>
+              {lang === 'mn' ? 'Ярилцлага эхлүүлэх' : 'Start interview'}
+              <ArrowRight size={16} strokeWidth={1.5} />
+            </Button>
+            <Button variant="ghost" size="lg">
+              <Play size={14} strokeWidth={1.5} />
+              {lang === 'mn' ? '90 сек үзүүлэг' : '90s demo'}
+            </Button>
           </div>
-        </div>
-        <div className="landing-hero-visual">
-          <img src={illustInterview} alt="" className="landing-hero-illustration" />
-        </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="landing-features">
-        <div className="landing-features-inner">
-          <div className="landing-feature-card">
-            <div className="feature-icon-wrap">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-            </div>
-            <h3>{lang === 'mn' ? 'Бодит ярилцлагын дасгал' : 'Realistic Mock Interviews'}</h3>
-            <p>{lang === 'mn' ? '15 хүртэл асуулттай бүрэн ярилцлага. Танилцуулга, туршлага, сэдэл, мэргэжлийн асуултуудыг дарааллаар нь дасгалла.' : 'Full interviews with up to 15 questions covering introduction, experience, motivation, and technical topics.'}</p>
+          <div className="landing-hero-meta">
+            <span>◆ {lang === 'mn' ? '12,000+ дасгал' : '12,000+ practices'}</span>
+            <span>◆ {lang === 'mn' ? '4.8/5 үнэлгээ' : '4.8/5 rating'}</span>
+            <span>◆ {lang === 'mn' ? 'Үнэгүй' : 'Free'}</span>
           </div>
-          <div className="landing-feature-card">
-            <div className="feature-icon-wrap">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20V10" /><path d="M18 20V4" /><path d="M6 20v-4" />
-              </svg>
-            </div>
-            <h3>{lang === 'mn' ? 'Дэлгэрэнгүй үнэлгээ' : 'Detailed Feedback'}</h3>
-            <p>{lang === 'mn' ? 'Хариулт бүрийн бүтэц, агуулга, хамаарлыг шинжилж, тодорхой зөвлөмж өгнө.' : 'Structure, content, and relevance analysis with clear improvement tips for every answer.'}</p>
-          </div>
-          <div className="landing-feature-card">
-            <div className="feature-icon-wrap">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
-              </svg>
-            </div>
-            <h3>{lang === 'mn' ? '10+ мэргэжлийн салбар' : '10+ Professional Fields'}</h3>
-            <p>{lang === 'mn' ? 'IT, санхүү, маркетинг, боловсрол зэрэг салбар бүрт тохирсон асуултуудаар дасгал хийгээрэй.' : 'Tailored questions for IT, finance, marketing, education, and more.'}</p>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Session Preview */}
-      <section className="landing-sessions">
-        <div className="landing-sessions-inner">
-          <h2>{lang === 'mn' ? 'Дасгалын горимууд' : 'Practice Modes'}</h2>
-          <div className="landing-session-cards">
-            <div className="landing-session-card">
-              <div className="session-card-number">15</div>
-              <h3>{lang === 'mn' ? 'Хөнгөн' : 'Easy'}</h3>
-              <p>{lang === 'mn' ? '~25 минут · Энгийн асуултууд' : '~25 min · Straightforward questions'}</p>
-            </div>
-            <div className="landing-session-card featured">
-              <div className="session-card-badge">{lang === 'mn' ? 'Санал болгох' : 'Recommended'}</div>
-              <div className="session-card-number">15</div>
-              <h3>{lang === 'mn' ? 'Дунд' : 'Medium'}</h3>
-              <p>{lang === 'mn' ? '~25 минут · Бүрэн бүтэцтэй' : '~25 min · Full structure'}</p>
-            </div>
-            <div className="landing-session-card">
-              <div className="session-card-number">17</div>
-              <h3>{lang === 'mn' ? 'Хүнд' : 'Hard'}</h3>
-              <p>{lang === 'mn' ? '~30 минут · Нарийвчилсан' : '~30 min · Includes company-context questions'}</p>
-            </div>
+        <section className="landing-features" id="features">
+          <div className="landing-features-inner">
+            {features.map(({ Icon, title, body }) => (
+              <div key={title} className="card card-hover landing-feature-card">
+                <div className="feature-icon-wrap">
+                  <Icon size={14} strokeWidth={1.5} />
+                </div>
+                <h3>{title}</h3>
+                <p className="subtle">{body}</p>
+              </div>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Bottom CTA */}
-      <section className="landing-bottom-cta">
-        <img src={illustResumes} alt="" className="landing-bottom-illustration" />
-        <h2>{lang === 'mn' ? 'Дасгалаа эхлүүлэхэд бэлэн үү?' : 'Ready to start practicing?'}</h2>
-        <button className="landing-hero-cta" onClick={onStart}>
-          {t('welcome_cta')}
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-        </button>
-      </section>
+        <section className="landing-final-cta">
+          <h2>
+            {lang === 'mn' ? 'Дасгалаа эхлүүлэхэд бэлэн үү?' : 'Ready to start practicing?'}
+          </h2>
+          <Button size="lg" onClick={onStart}>
+            {lang === 'mn' ? 'Ярилцлага эхлүүлэх' : 'Start interview'}
+            <ArrowRight size={16} strokeWidth={1.5} />
+          </Button>
+        </section>
 
-      {/* Footer */}
-      <footer className="landing-footer">
-        <span>InterviewCoach</span>
-        <span>{lang === 'mn' ? 'Монгол, Англи хэлээр дэмжигдсэн' : 'Mongolian & English supported'}</span>
-      </footer>
-    </div>
+        <footer className="landing-footer" id="footer">
+          <span className="faint">InterviewCoach</span>
+          <span className="faint">
+            {lang === 'mn' ? 'Монгол, Англи хэлээр дэмжигдсэн' : 'Mongolian & English supported'}
+          </span>
+        </footer>
+      </div>
+    </PageTransition>
   );
 }
 
