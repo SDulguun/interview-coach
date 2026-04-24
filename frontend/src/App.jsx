@@ -12,6 +12,7 @@ import InterviewSession from './components/InterviewSession';
 import SessionResults from './components/SessionResults';
 import HistoryView from './components/HistoryView';
 import InterviewGuides from './components/InterviewGuides';
+import { CommandPalette } from './components/ui';
 
 // Easy/Medium: 15 questions. Hard: 17 questions (adds company-context depth).
 
@@ -32,7 +33,8 @@ function App() {
     const key = userKey(user?.id, 'name');
     return localStorage.getItem(key) || user?.displayName || '';
   });
-  const { t, lang } = useLang();
+  const { t, lang, toggleLang } = useLang();
+  const [cmdOpen, setCmdOpen] = useState(false);
 
   function handleLogin(user) {
     setCurrentUser(user);
@@ -201,14 +203,33 @@ function App() {
     setResumeSkills(skills);
   }
 
+  function handleCommand(id) {
+    if (id === 'new')          { handleRestart(); }
+    else if (id === 'resume')  { setPhase('interview'); }
+    else if (id === 'history') { setPhase('history'); }
+    else if (id === 'star' || id === 'guides') { setPhase('guides'); }
+    else if (id === 'lang')    { toggleLang(); }
+    else if (id === 'logout')  { handleLogout(); }
+  }
+
   // Compute guided step index for the step indicator
   const stepIndex =
     phase === 'setup' ? 0 :
     phase === 'interview' ? 1 :
     phase === 'results' ? 2 : -1;
 
+  const cmdPaused = phase === 'interview';
+
   return (
     <>
+      <CommandPalette
+        open={cmdOpen}
+        onOpenChange={setCmdOpen}
+        onCommand={handleCommand}
+        paused={cmdPaused}
+        lang={lang}
+      />
+
       {/* AUTH PAGE */}
       {phase === 'auth' && (
         <AuthPage onLogin={handleLogin} onGuest={handleGuestMode} />
@@ -221,7 +242,7 @@ function App() {
 
       {/* MAIN APP WITH SIDEBAR */}
       {phase !== 'welcome' && phase !== 'auth' && (
-        <Layout phase={phase} onNavigate={handleNavigate} stepIndex={stepIndex} onLogout={handleLogout} currentUser={currentUser}>
+        <Layout phase={phase} onNavigate={handleNavigate} stepIndex={stepIndex} onLogout={handleLogout} currentUser={currentUser} onOpenCmd={() => setCmdOpen(true)}>
           {error && <div className="error-banner">{error}</div>}
 
           {/* DASHBOARD / SETUP PHASE */}

@@ -8,7 +8,7 @@ const PHASE_HINTS = {
   guides: { mn: 'Ярилцлагын бэлтгэлийн заавар', en: 'Interview preparation guides' },
 };
 
-function Layout({ children, phase, onNavigate, onLogout, currentUser }) {
+function Layout({ children, phase, onNavigate, onLogout, currentUser, onOpenCmd }) {
   const { lang, t, toggleLang } = useLang();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -138,6 +138,16 @@ function Layout({ children, phase, onNavigate, onLogout, currentUser }) {
             </button>
             <span className="topbar-title">{pageTitle[phase] || t('nav_practice')}</span>
           </div>
+          {onOpenCmd && (
+            <button className="topbar-cmd" onClick={onOpenCmd} type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3-3" />
+              </svg>
+              <span>{lang === 'mn' ? 'Команд хайх' : 'Search commands'}</span>
+              <span className="kbd">⌘K</span>
+            </button>
+          )}
         </header>
 
         <main className="app-container">
