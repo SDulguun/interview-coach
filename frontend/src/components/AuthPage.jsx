@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { User } from 'lucide-react';
 import { registerUser, loginUser } from '../auth';
 import { useLang } from '../lang';
+import { Button, PageTransition } from './ui';
+import './auth-page.css';
 
 export default function AuthPage({ onLogin, onGuest }) {
-  const [mode, setMode] = useState('login'); // login | register
+  const [mode, setMode] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -56,89 +59,93 @@ export default function AuthPage({ onLogin, onGuest }) {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card card">
-        <div className="auth-header">
-          <div className="auth-logo">
-            <div className="landing-brand-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </div>
-            <h1>{lang === 'mn' ? 'AI Ярилцлагын Дасгалжуулагч' : 'AI Interview Coach'}</h1>
+    <PageTransition keyName="auth">
+      <div className="auth-page">
+        <div className="auth-card">
+          <div className="auth-icon">
+            <User size={20} strokeWidth={1.5} color="#fff" />
           </div>
-        </div>
+          <h2 className="auth-title">
+            {mode === 'login'
+              ? (lang === 'mn' ? 'Тавтай морил' : 'Welcome back')
+              : (lang === 'mn' ? 'Бүртгэл үүсгэх' : 'Create account')}
+          </h2>
+          <p className="auth-sub subtle">
+            {lang === 'mn'
+              ? 'Ярилцлагын дасгалаа үргэлжлүүлэх'
+              : 'Continue your interview practice'}
+          </p>
 
-        <div className="auth-tabs">
-          <button
-            className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
-            onClick={() => { setMode('login'); setError(''); }}
-          >
-            {t('auth_login')}
-          </button>
-          <button
-            className={`auth-tab ${mode === 'register' ? 'active' : ''}`}
-            onClick={() => { setMode('register'); setError(''); }}
-          >
-            {t('auth_register')}
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="auth-field">
-            <label>{t('auth_username')}</label>
-            <input
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder={lang === 'mn' ? 'Хэрэглэгчийн нэр' : 'Username'}
-              autoComplete="username"
-              disabled={loading}
-            />
+          <div className="auth-tabs">
+            <button
+              className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
+              onClick={() => { setMode('login'); setError(''); }}
+              type="button"
+            >
+              {t('auth_login')}
+            </button>
+            <button
+              className={`auth-tab ${mode === 'register' ? 'active' : ''}`}
+              onClick={() => { setMode('register'); setError(''); }}
+              type="button"
+            >
+              {t('auth_register')}
+            </button>
           </div>
 
-          <div className="auth-field">
-            <label>{t('auth_password')}</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder={lang === 'mn' ? 'Нууц үг' : 'Password'}
-              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-              disabled={loading}
-            />
-          </div>
-
-          {mode === 'register' && (
+          <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-field">
-              <label>{t('auth_display_name')}</label>
+              <label>{t('auth_username')}</label>
               <input
                 type="text"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                placeholder={lang === 'mn' ? 'Жнь: Б. Болд' : 'e.g. B. Bold'}
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                placeholder={lang === 'mn' ? 'хэрэглэгчийн нэр' : 'username'}
+                autoComplete="username"
                 disabled={loading}
               />
             </div>
-          )}
 
-          {error && <div className="auth-error">{error}</div>}
+            <div className="auth-field">
+              <label>{t('auth_password')}</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder={lang === 'mn' ? 'нууц үг' : 'password'}
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                disabled={loading}
+              />
+            </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? (
-              <><span className="spinner-small" /> {lang === 'mn' ? 'Уншиж байна...' : 'Loading...'}</>
-            ) : (
-              mode === 'login' ? t('auth_login') : t('auth_register')
+            {mode === 'register' && (
+              <div className="auth-field">
+                <label>{t('auth_display_name')}</label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={e => setDisplayName(e.target.value)}
+                  placeholder={lang === 'mn' ? 'жнь: Б. Болд' : 'e.g. B. Bold'}
+                  disabled={loading}
+                />
+              </div>
             )}
-          </button>
-        </form>
 
-        <button className="auth-guest-btn" onClick={onGuest} disabled={loading}>
-          {t('auth_guest')}
-        </button>
-        <p className="auth-guest-hint">{t('auth_guest_hint')}</p>
+            {error && <div className="auth-error">{error}</div>}
+
+            <Button type="submit" size="lg" disabled={loading} style={{ width: '100%' }}>
+              {loading
+                ? (lang === 'mn' ? 'Уншиж байна…' : 'Loading…')
+                : mode === 'login' ? t('auth_login') : t('auth_register')}
+            </Button>
+          </form>
+
+          <Button variant="ghost" onClick={onGuest} disabled={loading} style={{ width: '100%' }}>
+            {t('auth_guest')}
+          </Button>
+          <p className="auth-guest-hint faint">{t('auth_guest_hint')}</p>
+        </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }
