@@ -12,7 +12,7 @@ import InterviewSession from './components/InterviewSession';
 import SessionResults from './components/SessionResults';
 import HistoryView from './components/HistoryView';
 import InterviewGuides from './components/InterviewGuides';
-import { CommandPalette } from './components/ui';
+import { CommandPalette, PageTransition } from './components/ui';
 
 // Easy/Medium: 15 questions. Hard: 17 questions (adds company-context depth).
 
@@ -245,6 +245,7 @@ function App() {
         <Layout phase={phase} onNavigate={handleNavigate} stepIndex={stepIndex} onLogout={handleLogout} currentUser={currentUser} onOpenCmd={() => setCmdOpen(true)}>
           {error && <div className="error-banner">{error}</div>}
 
+          <PageTransition keyName={phase}>
           {/* DASHBOARD / SETUP PHASE */}
           {phase === 'setup' && (
             <Dashboard
@@ -314,6 +315,7 @@ function App() {
           {phase === 'guides' && (
             <InterviewGuides />
           )}
+          </PageTransition>
         </Layout>
       )}
     </>
