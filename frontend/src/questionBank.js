@@ -45,10 +45,12 @@
 //   Arc: intro → motivation → experience → challenge → problem-solving
 //        → advanced-technical → leadership → scenario → company-context
 //        → achievement → pressure → strengths → weaknesses → company-fit → closing
-const EASY_PICKS   = [0, 1, 3, 5, 6, 8, 12, 17, 10, 4, 18, 11, 13, 2, 14];
+// Easy: 10 — concise intro-to-closing arc for beginners
+const EASY_PICKS   = [0, 1, 3, 5, 8, 10, 4, 13, 2, 14];
+// Medium: 15 — full realistic interview
 const MEDIUM_PICKS = [0, 1, 3, 5, 6, 7, 8, 10, 11, 4, 9, 12, 13, 2, 14];
-// Hard: 17 questions — adds 2 extra company-context for deeper interview
-const HARD_PICKS   = [0, 1, 3, 7, 9, 15, 16, 19, 20, 4, 10, 5, 6, 21, 22, 2, 14];
+// Hard: 20 — deeper arc with trade-offs, leadership, company-context
+const HARD_PICKS   = [0, 1, 3, 7, 9, 15, 16, 19, 20, 8, 17, 11, 4, 10, 5, 6, 18, 21, 22, 14];
 
 // ─── Question Bank ─────────────────────────────────────────────────
 const questionBank = {

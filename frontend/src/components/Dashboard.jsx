@@ -1,284 +1,389 @@
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  User, Check, ArrowRight, ArrowLeft,
+  Smile, BarChart3, Star,
+  Landmark, ShoppingBag, Pickaxe, Building2, Factory, GraduationCap,
+  Code2, HeartPulse, Megaphone, Users, HelpCircle,
+} from 'lucide-react';
 import { useLang } from '../lang';
-import SetupTabs from './SetupTabs';
-import illustResume from '../assets/illust-resume-pencil.png';
+import { Button, Pill, PageTransition } from './ui';
+import './dashboard.css';
+
+const INDUSTRIES = [
+  {
+    key: 'Банк, санхүү, нягтлан бодох бүртгэл', Icon: Landmark,
+    skills: ['Харилцааны чадвар', 'Нягт нямбай', 'Санхүүгийн тайлагнал', 'Аналитик сэтгэлгээ'],
+    companies: ['Хаан банк', 'Голомт банк', 'ХХБ', 'Хас банк'],
+  },
+  {
+    key: 'Худалдаа, борлуулалт', Icon: ShoppingBag,
+    skills: ['Хэлэлцээр хийх', 'Борлуулалтын стратеги', 'Үйлчлүүлэгчийн менежмент'],
+    companies: ['Номин холдинг', 'Tavan Bogd', 'E-mart', 'Good Price'],
+  },
+  {
+    key: 'Уул уурхай', Icon: Pickaxe,
+    skills: ['Багаар ажиллах', 'Аюулгүй ажиллагаа', 'Дасан зохицох'],
+    companies: ['Оюу толгой', 'Эрдэнэт', 'Тавантолгой'],
+  },
+  {
+    key: 'Барилга, үл хөдлөх хөрөнгө', Icon: Building2,
+    skills: ['AutoCAD', 'Цагийн менежмент', 'Хамтран ажиллах'],
+    companies: ['MCS Барилга', 'Бишрэлт', 'Max Group'],
+  },
+  {
+    key: 'Үйлдвэрлэл, инженерчлэл', Icon: Factory,
+    skills: ['Чанарын хяналт', 'Нягт нямбай', 'Процесс сайжруулалт'],
+    companies: ['APU', 'Gobi', 'MCS Electronics'],
+  },
+  {
+    key: 'Боловсрол, шинжлэх ухаан', Icon: GraduationCap,
+    skills: ['Сургалтын арга зүй', 'Харилцааны чадвар'],
+    companies: ['МУИС', 'ШУТИС', 'МУБИС'],
+  },
+  {
+    key: 'Мэдээллийн технологи, программ хангамж', Icon: Code2,
+    skills: ['Алгоритм', 'Багийн ажил', 'Системийн сэтгэлгээ'],
+    companies: ['Unitel', 'Mobicom', 'AND Systems', 'IT Zone'],
+  },
+  {
+    key: 'Эрүүл мэнд', Icon: HeartPulse,
+    skills: ['Харилцааны чадвар', 'Нягт нямбай', 'Багаар ажиллах'],
+    companies: ['Интермед', 'Сонгдо', 'Гранд Мед'],
+  },
+  {
+    key: 'Маркетинг PR, менежмент', Icon: Megaphone,
+    skills: ['Брэнд менежмент', 'Бүтээлч сэтгэлгээ', 'Аналитик'],
+    companies: ['Monos', 'Tavan Bogd Foods', 'SKY Media'],
+  },
+  {
+    key: 'Захиргаа, хүний нөөц', Icon: Users,
+    skills: ['Харилцаа', 'Сургалт, хөгжил', 'Шийдвэр гаргах'],
+    companies: ['MCS Group', 'Max Group', 'Shunkhlai'],
+  },
+  {
+    key: '__other__', Icon: HelpCircle,
+    skills: ['Харилцааны чадвар', 'Багаар ажиллах', 'Цагийн менежмент'],
+    companies: [],
+  },
+];
+
+const DIFFICULTY_MODES = [
+  {
+    key: 'easy', Icon: Smile, questions: 10, minutes: 15,
+    label_mn: 'Хөнгөн', label_en: 'Easy',
+    desc_mn: 'Анхлан суралцагчдад', desc_en: 'For beginners',
+  },
+  {
+    key: 'medium', Icon: BarChart3, questions: 15, minutes: 25,
+    label_mn: 'Дунд', label_en: 'Medium',
+    desc_mn: 'Жинхэнэ ярилцлагын түвшин', desc_en: 'Real interview level',
+    recommended: true,
+  },
+  {
+    key: 'hard', Icon: Star, questions: 20, minutes: 35,
+    label_mn: 'Хүнд', label_en: 'Hard',
+    desc_mn: 'Гүнзгий шинжилгээ, trade-off', desc_en: 'Deep analysis, trade-offs',
+  },
+];
 
 function Dashboard({
-  selectedJob,
-  onJobChange,
-  onJobDescription,
-  onResumeSkills,
-  onStartInterview,
-  loading,
-  difficulty,
-  onDifficultyChange,
-  userName,
-  onUserNameChange,
+  selectedJob, onJobChange,
+  onStartInterview, loading,
+  difficulty, onDifficultyChange,
+  userName, onUserNameChange,
 }) {
   const { t, lang } = useLang();
-  const [setupStep, setSetupStep] = useState(0); // 0=info, 1=category, 2=mode, 3=summary
+  const [step, setStep] = useState(0);
 
   const steps = [
-    { key: 'info', label: t('step_info') },
-    { key: 'category', label: t('step_category') },
-    { key: 'mode', label: t('step_mode') },
-    { key: 'ready', label: t('step_ready') },
+    { key: 'info',     label: lang === 'mn' ? 'Мэдээлэл'   : 'Info' },
+    { key: 'industry', label: lang === 'mn' ? 'Салбар'     : 'Industry' },
+    { key: 'mode',     label: lang === 'mn' ? 'Түвшин'     : 'Mode' },
+    { key: 'summary',  label: lang === 'mn' ? 'Тойм'       : 'Summary' },
   ];
 
-  const difficultyModes = [
-    {
-      key: 'easy',
-      label: t('difficulty_easy'),
-      desc: lang === 'mn'
-        ? 'Энгийн, шууд асуултууд. Бага хоёрдмол утгатай. Анхлан суралцагчдад тохиромжтой.'
-        : 'Simple, direct questions. Low ambiguity. Great for beginners.',
-      questionCount: 15,
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-        </svg>
-      ),
-    },
-    {
-      key: 'medium',
-      label: t('difficulty_medium'),
-      desc: lang === 'mn'
-        ? 'Жинхэнэ ярилцлагын түвшин. Жишээ, туршлага шаарддаг давхар асуултууд.'
-        : 'Real interview level. Layered behavioral questions requiring examples.',
-      questionCount: 15,
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
-        </svg>
-      ),
-      recommended: true,
-    },
-    {
-      key: 'hard',
-      label: t('difficulty_hard'),
-      desc: lang === 'mn'
-        ? 'Гүнзгий шинжилгээ, trade-off, удирдлагын болон компанийн нөхцөлт асуултууд. Ахлах түвшний ярилцлага.'
-        : 'Deep analysis, trade-offs, leadership and company-context questions. Senior-level interview.',
-      questionCount: 17,
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-      ),
-    },
-  ];
-
-  const active = difficultyModes.find(m => m.key === difficulty) || difficultyModes[1];
-
-  const [categoryError, setCategoryError] = useState(false);
+  const activeMode = DIFFICULTY_MODES.find(m => m.key === difficulty) || DIFFICULTY_MODES[1];
+  const activeIndustry = selectedJob ? INDUSTRIES.find(x => x.key === selectedJob.title) : null;
 
   function canProceed() {
-    if (setupStep === 0) return userName.trim().length > 0;
-    if (setupStep === 1) return !!selectedJob;
+    if (step === 0) return userName.trim().length > 0;
+    if (step === 1) return !!selectedJob;
     return true;
   }
 
   function nextStep() {
-    if (!canProceed()) {
-      if (setupStep === 1) setCategoryError(true);
+    if (!canProceed()) return;
+    setStep(s => Math.min(s + 1, steps.length - 1));
+  }
+  function prevStep() { setStep(s => Math.max(s - 1, 0)); }
+
+  function handleIndustrySelect(entry) {
+    const isOther = entry.key === '__other__';
+    if (selectedJob?.title === entry.key) {
+      onJobChange(null);
       return;
     }
-    setCategoryError(false);
-    if (setupStep < steps.length - 1) setSetupStep(setupStep + 1);
-  }
-
-  function prevStep() {
-    if (setupStep > 0) setSetupStep(setupStep - 1);
+    onJobChange({
+      id: null,
+      title: entry.key,
+      company: '',
+      description: '',
+      required_skills: entry.skills.join(', '),
+      isOther,
+    });
   }
 
   return (
-    <div className="setup-page">
-      {/* Step Indicator */}
-      <div className="step-indicator">
-        {steps.map((step, i) => (
-          <div key={step.key} className={`step-item ${i === setupStep ? 'active' : ''} ${i < setupStep ? 'done' : ''}`}>
-            <div className="step-dot">
-              {i < setupStep ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
-              ) : (
-                <span>{i + 1}</span>
-              )}
-            </div>
-            <span className="step-label">{step.label}</span>
-            {i < steps.length - 1 && <div className="step-line" />}
-          </div>
-        ))}
-      </div>
-
-      {/* Step 0: User Info */}
-      {setupStep === 0 && (
-        <div className="card setup-step-card">
-          <h2>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            {t('step_info')}
-          </h2>
-          <p className="setup-step-desc">
-            {lang === 'mn'
-              ? 'Ярилцлагын дасгалд тавтай морил. Нэрээ оруулаад эхлүүлээрэй.'
-              : 'Welcome to interview practice. Enter your name to begin.'}
-          </p>
-          <div className="user-info-field">
-            <label>{t('user_name')}</label>
-            <input
-              type="text"
-              className="user-name-input"
-              placeholder={t('user_name_placeholder')}
-              value={userName}
-              onChange={(e) => onUserNameChange(e.target.value)}
-              autoFocus
-            />
-            <span className="user-info-hint">{t('user_name_hint')}</span>
-          </div>
-          <div className="step-actions">
-            <div />
-            <button className="btn btn-primary" onClick={nextStep} disabled={!canProceed()}>
-              {t('next_step')}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-            </button>
-          </div>
+    <PageTransition keyName={`dashboard-${step}`}>
+      <div className="wiz">
+        {/* Step indicator */}
+        <div className="wiz-steps">
+          {steps.map((s, i) => {
+            const state = i < step ? 'done' : i === step ? 'active' : 'future';
+            return (
+              <div key={s.key} className={`wiz-step ${state}`}>
+                <div className="wiz-step-dot">
+                  {state === 'done' ? <Check size={14} strokeWidth={2} /> : <span className="mono">{i + 1}</span>}
+                </div>
+                <span className="wiz-step-label">{s.label}</span>
+                {i < steps.length - 1 && <div className="wiz-step-line" />}
+              </div>
+            );
+          })}
         </div>
-      )}
 
-      {/* Step 1: Category Selection */}
-      {setupStep === 1 && (
-        <div className="setup-step-card">
-          <SetupTabs
-            selectedJob={selectedJob}
-            onJobChange={(job) => { setCategoryError(false); onJobChange(job); }}
-            onJobDescription={onJobDescription}
-            onResumeSkills={onResumeSkills}
-          />
-          {categoryError && (
-            <p className="category-error">
-              {lang === 'mn' ? 'Салбар сонгоно уу' : 'Please select a category'}
+        {/* Step 1 — Info */}
+        {step === 0 && (
+          <div className="wiz-card">
+            <div className="label" style={{ marginBottom: 8 }}>
+              {lang === 'mn' ? 'Алхам 1' : 'Step 1'}
+            </div>
+            <h2>{lang === 'mn' ? 'Таныг юу гэж дуудах вэ?' : 'What should we call you?'}</h2>
+            <p className="subtle" style={{ margin: '6px 0 22px' }}>
+              {lang === 'mn'
+                ? 'Нэрээ оруулаарай — ярилцлагын турш хувийн болгон ашиглана.'
+                : 'Your name will be used to personalise the session.'}
             </p>
-          )}
-          <div className="step-actions">
-            <button className="btn btn-secondary" onClick={prevStep}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-              {t('prev_step')}
-            </button>
-            <button className="btn btn-primary" onClick={nextStep}>
-              {t('next_step')}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-            </button>
+            <div className="wiz-field">
+              <label>{t('user_name')}</label>
+              <input
+                type="text"
+                placeholder={t('user_name_placeholder')}
+                value={userName}
+                onChange={(e) => onUserNameChange(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="wiz-actions">
+              <div />
+              <Button onClick={nextStep} disabled={!canProceed()}>
+                {lang === 'mn' ? 'Үргэлжлүүлэх' : 'Continue'}
+                <ArrowRight size={14} strokeWidth={1.5} />
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Step 2: Difficulty Level */}
-      {setupStep === 2 && (
-        <div className="card setup-step-card">
-          <h2>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-            {t('difficulty_title')}
-          </h2>
-          <p className="setup-step-desc">
-            {lang === 'mn'
-              ? 'Бүх горим 15 асуулттай бүрэн ярилцлага. Түвшин нь асуултын нарийвчлалд нөлөөлнө.'
-              : 'All levels are full 15-question interviews. Difficulty affects question depth.'}
-          </p>
-          <div className="session-mode-grid">
-            {difficultyModes.map((mode) => (
-              <button
-                key={mode.key}
-                className={`session-mode-card ${difficulty === mode.key ? 'active' : ''}`}
-                onClick={() => onDifficultyChange(mode.key)}
-              >
-                {mode.recommended && (
-                  <span className="session-mode-badge">
-                    {lang === 'mn' ? 'Санал болгох' : 'Recommended'}
-                  </span>
-                )}
-                <span className="session-mode-icon">{mode.icon}</span>
-                <span className="session-mode-label">{mode.label}</span>
-                <span className="session-mode-desc">{mode.desc}</span>
-                <span className="session-mode-time">{mode.questionCount || 15} {lang === 'mn' ? 'асуулт' : 'questions'} · ~{mode.questionCount === 17 ? '30' : '25'} {t('minutes')}</span>
-              </button>
-            ))}
-          </div>
-          <div className="step-actions">
-            <button className="btn btn-secondary" onClick={prevStep}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-              {t('prev_step')}
-            </button>
-            <button className="btn btn-primary" onClick={nextStep}>
-              {t('next_step')}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-            </button>
-          </div>
-        </div>
-      )}
+        {/* Step 2 — Industry */}
+        {step === 1 && (
+          <div className="wiz-card">
+            <div className="label" style={{ marginBottom: 8 }}>
+              {lang === 'mn' ? 'Алхам 2' : 'Step 2'}
+            </div>
+            <h2>{lang === 'mn' ? 'Салбараа сонгоно уу' : 'Choose your industry'}</h2>
+            <p className="subtle" style={{ margin: '6px 0 22px' }}>
+              {lang === 'mn'
+                ? 'Сонгосон салбартай холбоотой асуултуудаар дасгал хийнэ.'
+                : 'Questions will be tailored to the selected industry.'}
+            </p>
+            <div className="industry-grid">
+              {INDUSTRIES.map(({ key, Icon }) => {
+                const active = selectedJob?.title === key;
+                const name = key === '__other__'
+                  ? (lang === 'mn' ? 'Бусад' : 'Other')
+                  : key;
+                return (
+                  <button
+                    key={key}
+                    className={`industry-tile ${active ? 'active' : ''}`}
+                    onClick={() => handleIndustrySelect(INDUSTRIES.find(x => x.key === key))}
+                    type="button"
+                  >
+                    <Icon size={16} strokeWidth={1.5} />
+                    <span>{name}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-      {/* Step 3: Summary + Start */}
-      {setupStep === 3 && (
-        <div className="card setup-step-card setup-summary">
-          <img src={illustResume} alt="" className="setup-summary-illustration" />
-          <div className="setup-summary-header">
-            <h2>{lang === 'mn' ? 'Дасгалын тойм' : 'Session Summary'}</h2>
-          </div>
+            <AnimatePresence>
+              {activeIndustry && (
+                <motion.div
+                  className="industry-detail"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                >
+                  <div className="industry-detail-inner">
+                    <div className="label">
+                      {lang === 'mn' ? 'Энэ салбарт шаардагдах гол ур чадварууд' : 'Core skills for this industry'}
+                    </div>
+                    <div className="industry-skills">
+                      {activeIndustry.skills.map((s) => (
+                        <Pill key={s} active>{s}</Pill>
+                      ))}
+                    </div>
+                    {activeIndustry.companies.length > 0 && (
+                      <>
+                        <div className="label" style={{ marginTop: 16 }}>
+                          {lang === 'mn' ? 'Жишээ компаниуд' : 'Example companies'}
+                        </div>
+                        <div className="industry-companies">
+                          {activeIndustry.companies.map((c) => (
+                            <span key={c} className="tag">{c}</span>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          <div className="setup-summary-grid">
-            <div className="summary-stat">
-              <svg className="summary-stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <span className="summary-stat-value">{userName}</span>
-              <span className="summary-stat-label">{t('user_name')}</span>
+            <div className="wiz-actions">
+              <Button variant="ghost" onClick={prevStep}>
+                <ArrowLeft size={14} strokeWidth={1.5} />
+                {lang === 'mn' ? 'Буцах' : 'Back'}
+              </Button>
+              <Button onClick={nextStep} disabled={!canProceed()}>
+                {lang === 'mn' ? 'Үргэлжлүүлэх' : 'Continue'}
+                <ArrowRight size={14} strokeWidth={1.5} />
+              </Button>
             </div>
-            <div className="summary-stat">
-              <svg className="summary-stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span className="summary-stat-value">{active.questionCount || 15}</span>
-              <span className="summary-stat-label">{t('progress')}</span>
+          </div>
+        )}
+
+        {/* Step 3 — Mode */}
+        {step === 2 && (
+          <div className="wiz-card">
+            <div className="label" style={{ marginBottom: 8 }}>
+              {lang === 'mn' ? 'Алхам 3' : 'Step 3'}
             </div>
-            <div className="summary-stat">
-              <svg className="summary-stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-              <span className="summary-stat-value">{active.label}</span>
-              <span className="summary-stat-label">{t('difficulty_title')}</span>
+            <h2>{lang === 'mn' ? 'Түвшингээ сонгоно уу' : 'Choose a difficulty'}</h2>
+            <p className="subtle" style={{ margin: '6px 0 22px' }}>
+              {lang === 'mn'
+                ? 'Түвшин нь асуултын тоо, гүнзгий байдалд нөлөөлнө.'
+                : 'Difficulty affects question count and depth.'}
+            </p>
+
+            <div className="mode-grid">
+              {DIFFICULTY_MODES.map((mode) => {
+                const active = difficulty === mode.key;
+                const label = lang === 'mn' ? mode.label_mn : mode.label_en;
+                const desc  = lang === 'mn' ? mode.desc_mn  : mode.desc_en;
+                return (
+                  <button
+                    key={mode.key}
+                    type="button"
+                    className={`mode-card ${active ? 'active' : ''} ${mode.recommended ? 'recommended' : ''}`}
+                    onClick={() => onDifficultyChange(mode.key)}
+                  >
+                    {mode.recommended && (
+                      <span className="mode-badge">
+                        {lang === 'mn' ? 'Санал болгох' : 'Recommended'}
+                      </span>
+                    )}
+                    <mode.Icon size={20} strokeWidth={1.5} className="mode-icon" />
+                    <div className="mode-label">{label}</div>
+                    <div className="mode-desc subtle">{desc}</div>
+                    <div className="mode-meta mono">
+                      {mode.questions} {lang === 'mn' ? 'асуулт' : 'q'} · ~{mode.minutes} {lang === 'mn' ? 'мин' : 'min'}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-            <div className="summary-stat">
-              <svg className="summary-stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              <span className="summary-stat-value">~25 {t('minutes')}</span>
-              <span className="summary-stat-label">{t('est_time')}</span>
+
+            <div className="wiz-actions">
+              <Button variant="ghost" onClick={prevStep}>
+                <ArrowLeft size={14} strokeWidth={1.5} />
+                {lang === 'mn' ? 'Буцах' : 'Back'}
+              </Button>
+              <Button onClick={nextStep}>
+                {lang === 'mn' ? 'Үргэлжлүүлэх' : 'Continue'}
+                <ArrowRight size={14} strokeWidth={1.5} />
+              </Button>
             </div>
-            {selectedJob && (
+          </div>
+        )}
+
+        {/* Step 4 — Summary */}
+        {step === 3 && (
+          <div className="wiz-card">
+            <div className="label" style={{ marginBottom: 8 }}>
+              {lang === 'mn' ? 'Алхам 4' : 'Step 4'}
+            </div>
+            <h2>{lang === 'mn' ? 'Бүх зүйл бэлэн' : "You're all set"}</h2>
+            <p className="subtle" style={{ margin: '6px 0 28px' }}>
+              {lang === 'mn'
+                ? 'Доорх тохиргоог шалгаад ярилцлагаа эхлүүлээрэй.'
+                : 'Double-check the setup and start when ready.'}
+            </p>
+
+            <div className="summary-row">
               <div className="summary-stat">
-                <svg className="summary-stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-                <span className="summary-stat-value summary-role">{selectedJob.title}</span>
-                <span className="summary-stat-label">{t('job_category')}</span>
+                <User size={14} strokeWidth={1.5} />
+                <span className="summary-value">{userName}</span>
+                <span className="summary-label">{lang === 'mn' ? 'Нэр' : 'Name'}</span>
+              </div>
+              <div className="summary-stat">
+                <span className="summary-value mono">{activeMode.questions}</span>
+                <span className="summary-label">{lang === 'mn' ? 'Асуулт' : 'Questions'}</span>
+              </div>
+              <div className="summary-stat">
+                <span className="summary-value">{lang === 'mn' ? activeMode.label_mn : activeMode.label_en}</span>
+                <span className="summary-label">{lang === 'mn' ? 'Түвшин' : 'Difficulty'}</span>
+              </div>
+              <div className="summary-stat">
+                <span className="summary-value mono">~{activeMode.minutes} {lang === 'mn' ? 'мин' : 'min'}</span>
+                <span className="summary-label">{lang === 'mn' ? 'Үргэлжлэх хугацаа' : 'Duration'}</span>
+              </div>
+            </div>
+
+            {activeIndustry && (
+              <div className="summary-industry">
+                <Pill active>
+                  <activeIndustry.Icon size={14} strokeWidth={1.5} />
+                  {activeIndustry.key === '__other__'
+                    ? (lang === 'mn' ? 'Бусад' : 'Other')
+                    : activeIndustry.key}
+                </Pill>
               </div>
             )}
-          </div>
 
-          <div className="step-actions step-actions-center">
-            <button className="btn btn-secondary" onClick={prevStep}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-              {t('prev_step')}
-            </button>
-            <button
-              className="btn btn-primary setup-start-btn"
-              onClick={onStartInterview}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <span className="spinner-small" />
-                  {t('btn_loading')}
-                </>
-              ) : (
-                <>
-                  {t('pre_session_start')}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-                </>
-              )}
-            </button>
+            <div className="wiz-actions summary-actions">
+              <Button variant="ghost" onClick={prevStep}>
+                <ArrowLeft size={14} strokeWidth={1.5} />
+                {lang === 'mn' ? 'Буцах' : 'Back'}
+              </Button>
+              <Button
+                size="lg"
+                onClick={onStartInterview}
+                disabled={loading}
+                style={{ flex: 1 }}
+              >
+                {loading
+                  ? (lang === 'mn' ? 'Уншиж байна…' : 'Loading…')
+                  : (lang === 'mn' ? 'Ярилцлага эхлүүлэх' : 'Start interview')}
+                {!loading && <ArrowRight size={16} strokeWidth={1.5} />}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </PageTransition>
   );
 }
 
