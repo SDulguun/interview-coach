@@ -101,6 +101,20 @@ export async function generateTTS(text, lang = 'mn') {
   return response.data;
 }
 
+export async function fetchBreakdown({ sessionId, questionIndex, question, userAnswer, lang = 'mn', durationSeconds = 0, wasVoice = false, sampleAnswer = null }) {
+  const response = await api.post('/api/feedback/breakdown', {
+    session_id: sessionId,
+    question_index: questionIndex,
+    question,
+    user_answer: userAnswer,
+    lang,
+    duration_seconds: durationSeconds,
+    was_voice: wasVoice,
+    sample_answer: sampleAnswer,
+  }, { timeout: 60000 });
+  return response.data;
+}
+
 export async function healthCheck() {
   const response = await api.get('/api/health');
   return response.data;

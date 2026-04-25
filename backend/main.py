@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .whisper_service import load_whisper_model, is_whisper_available
 from .nlp.coreml_embeddings import load_embedding_model, is_embedding_model_available
-from .routers import analyze, jobs, questions, resume, tts
+from .routers import analyze, feedback, jobs, questions, resume, tts
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -44,6 +44,7 @@ app.add_middleware(
 
 # Register routers
 app.include_router(analyze.router)
+app.include_router(feedback.router)
 app.include_router(jobs.router)
 app.include_router(questions.router)
 app.include_router(resume.router)

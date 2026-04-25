@@ -1,8 +1,11 @@
-import { useMemo } from 'react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight, ChevronDown, Download } from 'lucide-react';
 import { useLang } from '../lang';
 import { classifyQuestion, formatTime } from '../utils';
 import { Button, ProgressBar, ScoreCounter } from './ui';
+import QuestionBreakdown from './QuestionBreakdown';
+import { fetchBreakdown } from '../api';
 import './session-results.css';
 
 function cleanMetrics(text) {
@@ -46,8 +49,12 @@ function formatDate(d) {
   return `${day}.${month}.${year} · ${hours}:${mins}`;
 }
 
-function SessionResults({ results, answers, questions = [], totalQuestions, onRestart, onBack, difficulty, jobTitle, userName }) {
+function SessionResults({ results, answers, questions = [], totalQuestions, onRestart, onBack, difficulty, jobTitle, userName, sessionId = 'anon' }) {
   const { t, lang } = useLang();
+  const [openIndex, setOpenIndex] = useState(null);
+  const cacheRef = useRef(new Map());
+  const [, forceRender] = useState(0);
+  const [prefetch, setPrefetch] = useState({ active: false, done: 0, total: 0 });
 
   if (!results) return null;
 
@@ -78,6 +85,86 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
       return { i, tag, topic, score: s };
     }).filter(Boolean);
   }, [per_question, questions, t]);
+
+  const answerByQuestion = useMemo(() => {
+    const map = new Map();
+    (answers || []).forEach(a => { if (a?.question) map.set(a.question, a); });
+    return map;
+  }, [answers]);
+
+  function handleCached(key, value) {
+    cacheRef.current.set(key, value);
+    forceRender(n => n + 1);
+  }
+
+  useEffect(() => {
+    function onKey(e) {
+      if (openIndex === null) return;
+      if (e.key === 'Escape') {
+        setOpenIndex(null);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = perQuestionRows.find(r => r.i > openIndex);
+        if (next) setOpenIndex(next.i);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = [...perQuestionRows].reverse().find(r => r.i < openIndex);
+        if (prev) setOpenIndex(prev.i);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });   // run every render so perQuestionRows in closure is fresh
+
+  function startPrefetch() {
+    const tasks = perQuestionRows
+      .filter(r => !cacheRef.current.has(`${sessionId}:${r.i}`))
+      .map(r => r.i);
+    if (tasks.length === 0) return;
+    setPrefetch({ active: true, done: 0, total: tasks.length });
+
+    const concurrency = 3;
+    let cursor = 0;
+    let completed = 0;
+
+    function next() {
+      if (cursor >= tasks.length) return Promise.resolve();
+      const idx = tasks[cursor++];
+      const q = questions[idx];
+      const ans = answerByQuestion.get(q?.question);
+      if (!q || !ans) {
+        completed += 1;
+        setPrefetch(p => ({ ...p, done: completed }));
+        return next();
+      }
+      return fetchBreakdown({
+        sessionId,
+        questionIndex: idx,
+        question: q.question,
+        userAnswer: ans.text,
+        lang,
+        sampleAnswer: q.sample_answer || null,
+      })
+        .then(res => {
+          cacheRef.current.set(`${sessionId}:${idx}`, res);
+        })
+        .catch(err => console.error('prefetch failed:', idx, err))
+        .finally(() => {
+          completed += 1;
+          setPrefetch(p => ({ ...p, done: completed }));
+          return next();
+        });
+    }
+
+    Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, next))
+      .then(() => {
+        setPrefetch(p => ({ ...p, active: false }));
+        forceRender(n => n + 1);
+      });
+  }
+
+  const allCached = perQuestionRows.length > 0 &&
+    perQuestionRows.every(r => cacheRef.current.has(`${sessionId}:${r.i}`));
 
   const cleanedSuggestions = (aggregate.suggestions || [])
     .map(cleanMetrics)
@@ -141,25 +228,72 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
       {/* ── Main grid ── */}
       <section className="results-grid">
         <div className="card results-breakdown">
-          <div className="label">
-            {lang === 'mn' ? 'Асуулт тус бүрийн задаргаа' : 'Per-question breakdown'}
+          <div className="results-breakdown-head">
+            <div className="label">
+              {lang === 'mn' ? 'Асуулт тус бүрийн задаргаа' : 'Per-question breakdown'}
+            </div>
+            <button
+              type="button"
+              className="results-prefetch-btn"
+              onClick={startPrefetch}
+              disabled={prefetch.active || allCached}
+            >
+              <Download size={12} strokeWidth={1.5} />
+              {allCached
+                ? (lang === 'mn' ? 'Бүх задаргаа бэлэн ✓' : 'All breakdowns ready ✓')
+                : prefetch.active
+                  ? <span className="mono">{prefetch.done} / {prefetch.total}</span>
+                  : (lang === 'mn' ? 'Бүх задаргаа урьдчилан татах' : 'Prefetch all breakdowns')}
+            </button>
           </div>
           <div className="results-breakdown-list">
-            {perQuestionRows.slice(0, 15).map((row) => (
-              <div key={row.i} className="breakdown-row">
-                <span className="mono breakdown-num">{String(row.i + 1).padStart(2, '0')}</span>
-                <span className="breakdown-topic">{row.topic}</span>
-                <ProgressBar
-                  value={row.score}
-                  score={row.score}
-                  width={120}
-                  className="breakdown-bar"
-                />
-                <span className={`mono breakdown-score ${scoreColorClass(row.score)}`}>
-                  {row.score}
-                </span>
-              </div>
-            ))}
+            {perQuestionRows.slice(0, 15).map((row) => {
+              const isOpen = openIndex === row.i;
+              const q = questions[row.i];
+              const ans = answerByQuestion.get(q?.question);
+              return (
+                <div key={row.i} className={`breakdown-item ${isOpen ? 'open' : ''}`}>
+                  <button
+                    type="button"
+                    className="breakdown-row breakdown-row-btn"
+                    onClick={() => setOpenIndex(isOpen ? null : row.i)}
+                    aria-expanded={isOpen}
+                  >
+                    <span className="mono breakdown-num">{String(row.i + 1).padStart(2, '0')}</span>
+                    <span className="breakdown-topic">{row.topic}</span>
+                    <ProgressBar
+                      value={row.score}
+                      score={row.score}
+                      width={120}
+                      className="breakdown-bar"
+                    />
+                    <span className={`mono breakdown-score ${scoreColorClass(row.score)}`}>
+                      {row.score}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      strokeWidth={1.5}
+                      className={`breakdown-chev ${isOpen ? 'open' : ''}`}
+                    />
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {isOpen && q && ans && (
+                      <QuestionBreakdown
+                        sessionId={sessionId}
+                        questionIndex={row.i}
+                        question={q.question}
+                        userAnswer={ans.text}
+                        sampleAnswer={q.sample_answer || null}
+                        cache={cacheRef.current}
+                        onCached={handleCached}
+                        onRetry={() => { setOpenIndex(null); setTimeout(() => setOpenIndex(row.i), 0); }}
+                        onPracticeAgain={() => { /* TODO: deep-link single question */ onRestart?.(); }}
+                      />
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </div>
           {perQuestionRows.length > 15 && (
             <button className="btn btn-ghost results-breakdown-more" type="button">

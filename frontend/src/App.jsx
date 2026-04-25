@@ -23,6 +23,7 @@ function App() {
   const [difficulty, setDifficulty] = useState('medium');
   const [sessionQuestions, setSessionQuestions] = useState([]);
   const [sessionAnswers, setSessionAnswers] = useState([]);
+  const [sessionId, setSessionId] = useState('');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -93,6 +94,7 @@ function App() {
       }
 
       setSessionQuestions(questions);
+      setSessionId(`s-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
       setPhase('interview');
     } catch (err) {
       console.error('Failed to load questions:', err);
@@ -301,6 +303,7 @@ function App() {
                 answers={sessionAnswers}
                 questions={sessionQuestions}
                 totalQuestions={sessionQuestions.length}
+                sessionId={sessionId}
                 onRestart={handleRestart}
               />
             </>
