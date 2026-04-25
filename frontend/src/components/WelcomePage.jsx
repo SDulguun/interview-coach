@@ -43,9 +43,6 @@ function WelcomePage({ onStart, onOpenPalette }) {
               <span className="landing-brand-name">InterviewCoach</span>
             </div>
             <nav className="landing-nav-right">
-              <a className="landing-nav-link" href="#features">
-                {lang === 'mn' ? 'Бүтээгдэхүүн' : 'Product'}
-              </a>
               <a className="landing-nav-link" href="#footer">
                 {lang === 'mn' ? 'Бүлгэм' : 'Community'}
               </a>
