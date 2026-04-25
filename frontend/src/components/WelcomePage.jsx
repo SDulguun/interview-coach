@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useLang } from '../lang';
 import { MessageSquare, TrendingUp, CheckCircle, ArrowRight, Play } from 'lucide-react';
 import { Button, Kbd, GlowBackground, PageTransition } from './ui';
+import DemoModal from './DemoModal';
 import './welcome-page.css';
 
 function WelcomePage({ onStart, onOpenPalette }) {
   const { t, lang, toggleLang } = useLang();
+  const [demoOpen, setDemoOpen] = useState(false);
 
   const features = [
     {
@@ -42,9 +45,6 @@ function WelcomePage({ onStart, onOpenPalette }) {
             <nav className="landing-nav-right">
               <a className="landing-nav-link" href="#features">
                 {lang === 'mn' ? 'Бүтээгдэхүүн' : 'Product'}
-              </a>
-              <a className="landing-nav-link" href="#modes">
-                {lang === 'mn' ? 'Үнэ' : 'Pricing'}
               </a>
               <a className="landing-nav-link" href="#footer">
                 {lang === 'mn' ? 'Бүлгэм' : 'Community'}
@@ -100,15 +100,15 @@ function WelcomePage({ onStart, onOpenPalette }) {
               {lang === 'mn' ? 'Ярилцлага эхлүүлэх' : 'Start interview'}
               <ArrowRight size={16} strokeWidth={1.5} />
             </Button>
-            <Button variant="ghost" size="lg">
+            <Button variant="ghost" size="lg" onClick={() => setDemoOpen(true)}>
               <Play size={14} strokeWidth={1.5} />
               {lang === 'mn' ? '90 сек үзүүлэг' : '90s demo'}
             </Button>
           </div>
 
           <div className="landing-hero-meta">
-            <span>◆ {lang === 'mn' ? '12,000+ дасгал' : '12,000+ practices'}</span>
-            <span>◆ {lang === 'mn' ? '4.8/5 үнэлгээ' : '4.8/5 rating'}</span>
+            <span>◆ {lang === 'mn' ? 'AI-аар үнэлдэг' : 'AI-evaluated'}</span>
+            <span>◆ {lang === 'mn' ? 'Монгол хэл дээр' : 'Mongolian + English'}</span>
             <span>◆ {lang === 'mn' ? 'Үнэгүй' : 'Free'}</span>
           </div>
         </section>
@@ -144,6 +144,7 @@ function WelcomePage({ onStart, onOpenPalette }) {
           </span>
         </footer>
       </div>
+      <DemoModal open={demoOpen} onClose={() => setDemoOpen(false)} onStart={onStart} />
     </PageTransition>
   );
 }

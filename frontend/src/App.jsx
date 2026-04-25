@@ -239,7 +239,7 @@ function App() {
 
       {/* WELCOME / SPLASH PAGE */}
       {phase === 'welcome' && (
-        <WelcomePage onStart={() => setPhase('setup')} />
+        <WelcomePage onStart={() => setPhase('setup')} onOpenPalette={() => setCmdOpen(true)} />
       )}
 
       {/* MAIN APP WITH SIDEBAR */}
