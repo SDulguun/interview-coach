@@ -2,31 +2,105 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   X, Code2, TrendingUp, Briefcase, GraduationCap,
-  Mic, Sparkles, ArrowRight, Pause, Play,
+  Sparkles, ArrowRight, Pause, Play,
 } from 'lucide-react';
 import { useLang } from '../lang';
 import { ScoreCounter } from './ui';
 import './demo-modal.css';
 
-const STEPS_END = [15, 30, 50, 65, 85, 90];   // cumulative end-time for each step (s)
+const STEPS_END = [15, 30, 50, 65, 85, 90];
 const TOTAL = 90;
-const TICK = 250;   // ms
+const TICK = 250;
 
-function formatClock(seconds) {
-  const total = Math.max(0, Math.floor(seconds));
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
+const INDUSTRY_KEYS = ['it', 'finance', 'marketing', 'education'];
 
-function stepIndexFor(elapsed) {
-  for (let i = 0; i < STEPS_END.length; i++) {
-    if (elapsed < STEPS_END[i]) return i;
-  }
-  return STEPS_END.length - 1;
-}
+const INDUSTRIES = {
+  it:        { Icon: Code2,         mn: 'Мэдээллийн технологи', en: 'IT' },
+  finance:   { Icon: TrendingUp,    mn: 'Санхүү',                en: 'Finance' },
+  marketing: { Icon: Briefcase,     mn: 'Маркетинг',             en: 'Marketing' },
+  education: { Icon: GraduationCap, mn: 'Боловсрол',             en: 'Education' },
+};
 
-function stepStart(i) { return i === 0 ? 0 : STEPS_END[i - 1]; }
+const QA = {
+  it: {
+    mn: {
+      q: 'Сүүлд ажилласан төслөө танилцуулна уу.',
+      a: 'Сүүлийн 6 сард Python-аар бичсэн API хийсэн. Хэрэглэгчдийн хүсэлтийн хариу 200мс-аас бууруулсан...',
+    },
+    en: {
+      q: 'Tell me about a recent project you worked on.',
+      a: 'Over the last 6 months I built a Python API. Brought p95 latency down from 200ms to under 80ms by...',
+    },
+  },
+  finance: {
+    mn: {
+      q: 'Аудитын процесст оролцсон туршлагаа хуваалцана уу.',
+      a: 'Өмнөх компанид жилийн санхүүгийн тайланг шалгахад оролцсон. Зөрүү гарсан хэсгийг...',
+    },
+    en: {
+      q: 'Walk me through a time you took part in an audit.',
+      a: 'At my previous company I helped review the annual financial statements. When discrepancies came up I...',
+    },
+  },
+  marketing: {
+    mn: {
+      q: 'Хамгийн амжилттай кампанит ажлаа ярина уу.',
+      a: 'Сошиал сувгийн гүйцэтгэлийг 3 дахин нэмэгдүүлсэн. Контентийн стратеги, аудиторийн сегментчиллийг...',
+    },
+    en: {
+      q: 'Tell me about your most successful campaign.',
+      a: 'I tripled our social channel performance. The content strategy and audience segmentation came from...',
+    },
+  },
+  education: {
+    mn: {
+      q: 'Хүнд суралцагчтай хэрхэн ажилласан туршлагаа ярина уу.',
+      a: 'Анхаарал төвлөрөхөд хүндрэлтэй сурагчтай ажиллахдаа богино даалгавар, ойр ойр амралттай...',
+    },
+    en: {
+      q: 'Walk me through working with a struggling learner.',
+      a: 'For a student who had trouble focusing, I broke work into short blocks with frequent breaks and...',
+    },
+  },
+};
+
+const HINTS = {
+  it: {
+    mn: 'Техникийн нарийвчлал — ашигласан технологи, хэмжигдэхүйц үр дүнг (latency, ачаалал) дурдвал илүү сайн.',
+    en: 'Show technical depth — name the stack and quote a measurable result (latency, throughput).',
+  },
+  finance: {
+    mn: 'Тоон нарийвчлал чухал — мөнгөн дүн, хувь, хугацаагаа тодорхой хэлвэл итгэл төрүүлнэ.',
+    en: 'Numbers matter — quote the amounts, percentages, and timeframe to come across as precise.',
+  },
+  marketing: {
+    mn: 'Үр дүнг хэмжээгээр харуул — өсөлтийн хувь, ROI, аудиторын тоо чухал.',
+    en: 'Show measurable outcomes — growth %, ROI, and audience size carry the most weight.',
+  },
+  education: {
+    mn: 'Сурагчийн хувийн ахиц чухал — хийсэн дасгал, ажиглалт, үр дүнг тодорхой ярь.',
+    en: 'Anchor on the learner\'s progress — describe the activity, observation, and outcome.',
+  },
+};
+
+const RESULT_TOPICS = {
+  it: {
+    mn: ['Техник', 'STAR', 'Нарийвчлал'],
+    en: ['Technical', 'STAR', 'Precision'],
+  },
+  finance: {
+    mn: ['Тоо', 'Нарийвчлал', 'Хамаарал'],
+    en: ['Numbers', 'Precision', 'Relevance'],
+  },
+  marketing: {
+    mn: ['Үр дүн', 'Стратеги', 'Хамаарал'],
+    en: ['Outcome', 'Strategy', 'Relevance'],
+  },
+  education: {
+    mn: ['Жишээ', 'Ажиглалт', 'Үр дүн'],
+    en: ['Example', 'Observation', 'Outcome'],
+  },
+};
 
 const CAPTIONS = {
   mn: [
@@ -47,23 +121,60 @@ const CAPTIONS = {
   ],
 };
 
-function StepIndustry({ lang }) {
-  const tiles = [
-    { Icon: Code2,        label: lang === 'mn' ? 'Мэдээллийн технологи' : 'IT', glow: true },
-    { Icon: TrendingUp,   label: lang === 'mn' ? 'Санхүү' : 'Finance' },
-    { Icon: Briefcase,    label: lang === 'mn' ? 'Маркетинг' : 'Marketing' },
-    { Icon: GraduationCap,label: lang === 'mn' ? 'Боловсрол' : 'Education' },
-  ];
+function formatClock(seconds) {
+  const total = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function stepIndexFor(elapsed) {
+  for (let i = 0; i < STEPS_END.length; i++) {
+    if (elapsed < STEPS_END[i]) return i;
+  }
+  return STEPS_END.length - 1;
+}
+
+function stepStart(i) { return i === 0 ? 0 : STEPS_END[i - 1]; }
+
+/* ---------- Steps ---------- */
+
+function StepIndustry({ lang, selected, onSelect, toast }) {
   return (
-    <div className="demo-stage">
+    <div className="demo-stage demo-stage-industry">
       <div className="demo-mini-industry">
-        {tiles.map(({ Icon, label, glow }) => (
-          <div key={label} className={`demo-tile ${glow ? 'glow' : ''}`}>
-            <Icon size={16} strokeWidth={1.5} />
-            <span>{label}</span>
-          </div>
-        ))}
+        {INDUSTRY_KEYS.map(key => {
+          const { Icon, mn, en } = INDUSTRIES[key];
+          const label = lang === 'mn' ? mn : en;
+          const isSelected = selected === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              className={`demo-tile ${isSelected ? 'glow' : ''}`}
+              onClick={() => onSelect(key)}
+              aria-pressed={isSelected}
+            >
+              <Icon size={16} strokeWidth={1.5} />
+              <span>{label}</span>
+            </button>
+          );
+        })}
       </div>
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            key={toast}
+            className="demo-industry-toast mono"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -2 }}
+            transition={{ duration: 0.2 }}
+          >
+            {lang === 'mn' ? 'Сонгосон: ' : 'Selected: '}{toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -107,13 +218,8 @@ function Typewriter({ text, speed = 28 }) {
   );
 }
 
-function StepLive({ lang }) {
-  const q = lang === 'mn'
-    ? 'Хамгийн сүүлд шийдвэрлэсэн хүнд асуудлынхаа тухай ярина уу?'
-    : 'Tell me about a difficult problem you recently solved.';
-  const ans = lang === 'mn'
-    ? 'Сүүлийн төсөлд маань API-ийн хариу удаашралттай байсан. Би profiling хийж DB query-г илрүүлээд...'
-    : 'On my last project the API was slow. I profiled it, found a DB query bottleneck, and...';
+function StepLive({ lang, industry }) {
+  const pair = QA[industry]?.[lang] || QA.it[lang] || QA.it.mn;
   return (
     <div className="demo-stage">
       <div className="demo-mini-session">
@@ -121,22 +227,20 @@ function StepLive({ lang }) {
           <span className="demo-rec-dot" />
           <span className="mono demo-rec-time">00:42</span>
         </div>
-        <div className="demo-question">{q}</div>
+        <div className="demo-question">{pair.q}</div>
         <div className="demo-answer-box">
-          <Typewriter text={ans} />
+          <Typewriter text={pair.a} />
         </div>
       </div>
     </div>
   );
 }
 
-function StepHints({ lang }) {
+function StepHints({ lang, industry }) {
+  const hint = HINTS[industry]?.[lang] || HINTS.it[lang] || HINTS.it.mn;
   const q = lang === 'mn'
     ? 'Багийн ажилд та ямар үүрэг гүйцэтгэдэг вэ?'
     : 'What role do you take on a team?';
-  const hint = lang === 'mn'
-    ? 'STAR бүтцийг ашиглан тодорхой жишээгээр баталгаажуул.'
-    : 'Use the STAR structure with a concrete example.';
   return (
     <div className="demo-stage">
       <div className="demo-mini-hints">
@@ -156,7 +260,13 @@ function StepHints({ lang }) {
   );
 }
 
-function StepResults({ lang }) {
+function StepResults({ lang, industry }) {
+  const topics = RESULT_TOPICS[industry]?.[lang] || RESULT_TOPICS.it[lang] || RESULT_TOPICS.it.mn;
+  const stats = [
+    { k: topics[0], v: 82 },
+    { k: topics[1], v: 74 },
+    { k: topics[2], v: 80 },
+  ];
   return (
     <div className="demo-stage">
       <div className="demo-mini-results">
@@ -168,11 +278,7 @@ function StepResults({ lang }) {
             </div>
           </div>
           <div className="demo-res-stats">
-            {[
-              { k: lang === 'mn' ? 'Тодорхой' : 'Clarity',   v: 82 },
-              { k: lang === 'mn' ? 'STAR'     : 'Structure', v: 74 },
-              { k: lang === 'mn' ? 'Хамаарал' : 'Relevance', v: 80 },
-            ].map(s => (
+            {stats.map(s => (
               <div key={s.k} className="demo-res-stat">
                 <span className="mono">{s.v}</span>
                 <span>{s.k}</span>
@@ -196,45 +302,65 @@ function StepCta({ lang, onStart }) {
   );
 }
 
-function StepView({ index, lang, onStart }) {
+function StepView({ index, lang, industry, onStart, onSelectIndustry, industryToast }) {
   switch (index) {
-    case 0: return <StepIndustry lang={lang} />;
+    case 0: return <StepIndustry lang={lang} selected={industry} onSelect={onSelectIndustry} toast={industryToast} />;
     case 1: return <StepDifficulty lang={lang} />;
-    case 2: return <StepLive lang={lang} />;
-    case 3: return <StepHints lang={lang} />;
-    case 4: return <StepResults lang={lang} />;
+    case 2: return <StepLive lang={lang} industry={industry} />;
+    case 3: return <StepHints lang={lang} industry={industry} />;
+    case 4: return <StepResults lang={lang} industry={industry} />;
     case 5: return <StepCta lang={lang} onStart={onStart} />;
     default: return null;
   }
 }
 
+/* ---------- Modal ---------- */
+
 function DemoModal({ open, onClose, onStart }) {
   const { lang } = useLang();
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [industry, setIndustry] = useState('it');
+  const [industryToast, setIndustryToast] = useState('');
+  const [holdUntil, setHoldUntil] = useState(0);
   const tickRef = useRef(null);
+  const toastTimerRef = useRef(null);
 
   // Reset on open
   useEffect(() => {
     if (open) {
       setElapsed(0);
       setPaused(false);
+      setIndustry('it');
+      setIndustryToast('');
+      setHoldUntil(0);
     }
   }, [open]);
 
+  const onHold = holdUntil > 0 && Date.now() < holdUntil;
+
   // Tick
   useEffect(() => {
-    if (!open || paused) return;
+    if (!open || paused || onHold) return;
     tickRef.current = setInterval(() => {
       setElapsed(prev => {
         const next = prev + TICK / 1000;
-        return next >= TOTAL ? 0 : next;   // loop
+        return next >= TOTAL ? 0 : next;
       });
     }, TICK);
     return () => clearInterval(tickRef.current);
-  }, [open, paused]);
+  }, [open, paused, onHold]);
 
-  // Esc close + body scroll lock
+  // Release the hold once it expires
+  useEffect(() => {
+    if (!holdUntil) return;
+    const remaining = holdUntil - Date.now();
+    if (remaining <= 0) { setHoldUntil(0); return; }
+    const id = setTimeout(() => setHoldUntil(0), remaining);
+    return () => clearTimeout(id);
+  }, [holdUntil]);
+
+  // Esc + body scroll lock
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
@@ -247,6 +373,9 @@ function DemoModal({ open, onClose, onStart }) {
     };
   }, [open, onClose]);
 
+  // Clean up toast timer on unmount
+  useEffect(() => () => clearTimeout(toastTimerRef.current), []);
+
   const idx = stepIndexFor(elapsed);
   const captions = CAPTIONS[lang] || CAPTIONS.en;
   const progress = (elapsed / TOTAL) * 100;
@@ -255,11 +384,21 @@ function DemoModal({ open, onClose, onStart }) {
     const clamped = Math.max(0, Math.min(STEPS_END.length - 1, i));
     setElapsed(stepStart(clamped));
     setPaused(true);
+    setHoldUntil(0);
   }
 
   function handleStart() {
     onClose?.();
     onStart?.();
+  }
+
+  function handleSelectIndustry(key) {
+    setIndustry(key);
+    const label = lang === 'mn' ? INDUSTRIES[key].mn : INDUSTRIES[key].en;
+    setIndustryToast(label);
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setIndustryToast(''), 1500);
+    setHoldUntil(Date.now() + 3000);
   }
 
   return (
@@ -300,7 +439,14 @@ function DemoModal({ open, onClose, onStart }) {
                   transition={{ duration: 0.2 }}
                   className="demo-canvas-inner"
                 >
-                  <StepView index={idx} lang={lang} onStart={handleStart} />
+                  <StepView
+                    index={idx}
+                    lang={lang}
+                    industry={industry}
+                    onStart={handleStart}
+                    onSelectIndustry={handleSelectIndustry}
+                    industryToast={industryToast}
+                  />
                 </motion.div>
               </AnimatePresence>
             </div>
