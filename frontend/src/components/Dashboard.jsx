@@ -206,12 +206,18 @@ function Dashboard({
                 return (
                   <button
                     key={key}
-                    className={`industry-tile ${active ? 'active' : ''}`}
+                    className={`industry-tile ${active ? 'selected' : ''}`}
                     onClick={() => handleIndustrySelect(INDUSTRIES.find(x => x.key === key))}
                     type="button"
+                    aria-pressed={active}
                   >
                     <Icon size={16} strokeWidth={1.5} />
                     <span>{name}</span>
+                    {active && (
+                      <span className="card-check" aria-hidden="true">
+                        <Check size={11} strokeWidth={2.5} />
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -287,12 +293,18 @@ function Dashboard({
                   <button
                     key={mode.key}
                     type="button"
-                    className={`mode-card ${active ? 'active' : ''} ${mode.recommended ? 'recommended' : ''}`}
+                    className={`mode-card ${active ? 'selected' : ''} ${mode.recommended ? 'recommended' : ''}`}
                     onClick={() => onDifficultyChange(mode.key)}
+                    aria-pressed={active}
                   >
                     {mode.recommended && (
                       <span className="mode-badge">
                         {lang === 'mn' ? 'Санал болгох' : 'Recommended'}
+                      </span>
+                    )}
+                    {active && (
+                      <span className="card-check" aria-hidden="true">
+                        <Check size={11} strokeWidth={2.5} />
                       </span>
                     )}
                     <mode.Icon size={20} strokeWidth={1.5} className="mode-icon" />

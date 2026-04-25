@@ -95,6 +95,7 @@
   margin-bottom: 20px;
 }
 .industry-tile {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -115,9 +116,12 @@
   border-color: var(--border-accent-hover);
   background: var(--ink-700);
 }
-.industry-tile.active {
-  border-color: var(--border-accent);
-  background: rgba(124, 58, 237, 0.08);
+.industry-tile.selected {
+  border-color: var(--iris-500);
+  border-width: 2px;
+  padding: 13px 15px;
+  background: rgba(139, 92, 246, 0.08);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.10), 0 0 28px rgba(139, 92, 246, 0.18);
 }
 .industry-detail {
   overflow: hidden;
@@ -162,8 +166,32 @@
   transform: translateY(-2px);
   border-color: var(--border-accent-hover);
 }
-.mode-card.active { border-color: var(--iris-500); background: rgba(124, 58, 237, 0.08); }
-.mode-card.recommended { border-width: 2px; border-color: var(--iris-500); }
+/* Recommended is a permanent annotation — does not change border/background */
+.mode-card.recommended { border-color: var(--border-card); }
+/* Selected always wins — dominates recommended */
+.mode-card.selected {
+  border-color: var(--iris-500);
+  border-width: 2px;
+  padding: 21px 19px;
+  background: rgba(139, 92, 246, 0.08);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.10), 0 0 32px rgba(139, 92, 246, 0.22);
+}
+
+/* Shared selected-card check pin — used on industry tiles + difficulty cards */
+.card-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--iris-500);
+  color: #fff;
+  pointer-events: none;
+}
 .mode-icon { color: var(--iris-300); margin-bottom: 4px; }
 .mode-label { font-size: 16px; font-weight: 500; color: var(--text-primary); }
 .mode-desc  { font-size: 12.5px; line-height: 1.5; }
