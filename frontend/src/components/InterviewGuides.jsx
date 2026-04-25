@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLang } from '../lang';
-import illustInterviewIcon from '../assets/illust-interview-icon.png';
+import './interview-guides.css';
 
 // ─── CV + JD Comparison Tool ───
 const SKILL_KEYWORDS = [
@@ -427,49 +427,52 @@ function InterviewGuides() {
 
   return (
     <div className="guides-page">
-      <div className="guides-header">
-        <div className="guides-header-row">
-          <div>
-            <h1>{t('guides_title')}</h1>
-            <p>{t('guides_subtitle')}</p>
-          </div>
-          <img src={illustInterviewIcon} alt="" className="guides-header-illustration" />
-        </div>
+      <header className="guides-header">
+        <h1>{t('guides_title')}</h1>
+        <p className="subtle">{t('guides_subtitle')}</p>
+      </header>
+
+      <div className="guides-pillrow" role="tablist">
+        {guides.map((guide) => {
+          const isActive = activeGuide === guide.key;
+          return (
+            <button
+              key={guide.key}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={`guides-pill ${isActive ? 'active' : ''}`}
+              onClick={() => setActiveGuide(guide.key)}
+            >
+              {guide.icon}
+              <span>{t(guide.titleKey)}</span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="guides-tabs">
-        {guides.map((guide) => (
-          <button
-            key={guide.key}
-            className={`guides-tab ${activeGuide === guide.key ? 'active' : ''}`}
-            onClick={() => setActiveGuide(guide.key)}
-          >
-            {guide.icon}
-            <span>{t(guide.titleKey)}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="guides-content card">
-        <h2>{t(current.titleKey)}</h2>
+      <div className="guides-content">
+        <h2 className="guides-content-title">{t(current.titleKey)}</h2>
         <p className="guides-summary">{content.summary}</p>
 
         {isCvTool ? (
           <CvJdTool />
         ) : (
           <>
-            <div className="guides-points">
-              {content.points.map((point, i) => (
-                <div key={i} className="guides-point">
-                  <span className="guides-point-num">{i + 1}</span>
-                  <p>{point}</p>
-                </div>
-              ))}
-            </div>
+            {content.points.length > 0 && (
+              <ol className="guides-points">
+                {content.points.map((point, i) => (
+                  <li key={i} className="guides-point">
+                    <span className="guides-point-num mono">{String(i + 1).padStart(2, '0')}</span>
+                    <p>{point}</p>
+                  </li>
+                ))}
+              </ol>
+            )}
 
             {content.example && (
               <div className="guides-example">
-                <label>{lang === 'mn' ? 'Жишээ' : 'Example'}</label>
+                <div className="label">{lang === 'mn' ? 'Жишээ' : 'Example'}</div>
                 <p>{content.example}</p>
               </div>
             )}

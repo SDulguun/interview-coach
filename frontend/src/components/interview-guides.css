@@ -1,0 +1,287 @@
+.guides-page {
+  max-width: 920px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 40px;
+}
+
+.guides-header h1 {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.15;
+  margin-bottom: 6px;
+}
+.guides-header p {
+  font-size: 13px;
+  color: var(--text-subtle);
+  line-height: 1.5;
+}
+
+/* ---------- Pill row ---------- */
+.guides-pillrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.guides-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: var(--ink-800);
+  border: 0.5px solid var(--border-card);
+  color: var(--text-subtle);
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 200ms, color 200ms, border-color 200ms;
+}
+.guides-pill:hover {
+  color: var(--text-primary);
+  border-color: var(--border-accent-hover);
+}
+.guides-pill svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.5;
+}
+.guides-pill.active {
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--iris-300);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+.guides-pill.active svg { color: var(--iris-300); }
+
+/* ---------- Content card ---------- */
+.guides-content {
+  background: var(--ink-800);
+  border: 0.5px solid var(--border-card);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.guides-content-title {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+.guides-summary {
+  font-size: 14px;
+  color: var(--text-body);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ---------- Numbered list ---------- */
+.guides-points {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.guides-point {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 14px;
+  align-items: baseline;
+}
+.guides-point-num {
+  font-size: 12px;
+  color: var(--iris-300);
+  letter-spacing: 0.02em;
+  text-align: right;
+}
+.guides-point p {
+  font-size: 14px;
+  color: var(--text-body);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ---------- Example block ---------- */
+.guides-example {
+  margin-top: 8px;
+  padding: 14px;
+  background: var(--ink-700);
+  border-radius: var(--r-md);
+  border-left: 0.5px solid rgba(139, 92, 246, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.guides-example .label {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--iris-300);
+}
+.guides-example p {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ---------- CV/JD tool (compact reset) ---------- */
+.cv-jd-tool {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cv-jd-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.cv-jd-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cv-jd-input-group label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+.cv-jd-input-group textarea {
+  background: var(--ink-700);
+  border: 0.5px solid var(--border-card);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  color: var(--text-body);
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 200ms;
+}
+.cv-jd-input-group textarea:focus {
+  outline: none;
+  border-color: var(--border-accent-hover);
+}
+.cv-jd-compare-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--r-sm);
+  background: var(--iris-500);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  transition: background 200ms;
+}
+.cv-jd-compare-btn:hover:not(:disabled) { background: var(--iris-600); }
+.cv-jd-compare-btn:disabled { opacity: 0.4; cursor: default; }
+.cv-jd-hint {
+  font-size: 12px;
+  color: var(--text-subtle);
+  margin: 0;
+}
+.cv-jd-results {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.cv-jd-skills-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.cv-jd-skill-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cv-jd-skill-group label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+.cv-jd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  display: inline-flex;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 0.5px solid var(--border-card);
+  background: var(--ink-700);
+  color: var(--text-muted);
+}
+.chip-matched {
+  background: rgba(93, 202, 165, 0.12);
+  color: var(--green);
+  border-color: rgba(93, 202, 165, 0.3);
+}
+.chip-missing {
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--amber);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+.cv-jd-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cv-jd-section label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+.cv-jd-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cv-jd-section li {
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.6;
+  padding-left: 14px;
+  position: relative;
+}
+.cv-jd-section li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--iris-300);
+}
+
+@media (max-width: 768px) {
+  .cv-jd-inputs { grid-template-columns: 1fr; }
+  .cv-jd-skills-row { grid-template-columns: 1fr; }
+  .guides-content { padding: 18px; }
+  .guides-content-title { font-size: 19px; }
+}
