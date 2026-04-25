@@ -179,21 +179,41 @@ function StepIndustry({ lang, selected, onSelect, toast }) {
   );
 }
 
-function StepDifficulty({ lang }) {
+const DIFFICULTY_META = {
+  easy:   { questions: 10, minutes: 15 },
+  medium: { questions: 15, minutes: 25 },
+  hard:   { questions: 20, minutes: 35 },
+};
+
+function StepDifficulty({ lang, selected, onSelect }) {
   const cards = [
-    { key: 'easy',   label: lang === 'mn' ? 'Хөнгөн' : 'Easy',   meta: '10 ' + (lang === 'mn' ? 'асуулт' : 'questions') },
-    { key: 'medium', label: lang === 'mn' ? 'Дунд'   : 'Medium', meta: '15 ' + (lang === 'mn' ? 'асуулт' : 'questions'), highlight: true },
-    { key: 'hard',   label: lang === 'mn' ? 'Хүнд'   : 'Hard',   meta: '17 ' + (lang === 'mn' ? 'асуулт' : 'questions') },
+    { key: 'easy',   label: lang === 'mn' ? 'Хөнгөн' : 'Easy' },
+    { key: 'medium', label: lang === 'mn' ? 'Дунд'   : 'Medium' },
+    { key: 'hard',   label: lang === 'mn' ? 'Хүнд'   : 'Hard' },
   ];
+  const qLabel = lang === 'mn' ? 'асуулт' : 'questions';
+  const minLabel = lang === 'mn' ? 'мин' : 'min';
   return (
     <div className="demo-stage">
       <div className="demo-mini-difficulty">
-        {cards.map(c => (
-          <div key={c.key} className={`demo-diff-card ${c.highlight ? 'glow' : ''}`}>
-            <div className="demo-diff-label">{c.label}</div>
-            <div className="demo-diff-meta mono">{c.meta}</div>
-          </div>
-        ))}
+        {cards.map(c => {
+          const meta = DIFFICULTY_META[c.key];
+          const isSelected = selected === c.key;
+          return (
+            <button
+              key={c.key}
+              type="button"
+              className={`demo-diff-card ${isSelected ? 'glow' : ''}`}
+              onClick={() => onSelect(c.key)}
+              aria-pressed={isSelected}
+            >
+              <div className="demo-diff-label">{c.label}</div>
+              <div className="demo-diff-meta mono">
+                {meta.questions} {qLabel} · ~{meta.minutes} {minLabel}
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -260,8 +280,10 @@ function StepHints({ lang, industry }) {
   );
 }
 
-function StepResults({ lang, industry }) {
+function StepResults({ lang, industry, difficulty }) {
   const topics = RESULT_TOPICS[industry]?.[lang] || RESULT_TOPICS.it[lang] || RESULT_TOPICS.it.mn;
+  const meta = DIFFICULTY_META[difficulty] || DIFFICULTY_META.medium;
+  const qLabel = lang === 'mn' ? 'асуулт' : 'q';
   const stats = [
     { k: topics[0], v: 82 },
     { k: topics[1], v: 74 },
@@ -276,6 +298,7 @@ function StepResults({ lang, industry }) {
             <div className="demo-res-score gradient-text mono">
               <ScoreCounter target={78} duration={1400} />
             </div>
+            <div className="demo-res-meta mono">{meta.questions} {qLabel}</div>
           </div>
           <div className="demo-res-stats">
             {stats.map(s => (
@@ -302,13 +325,16 @@ function StepCta({ lang, onStart }) {
   );
 }
 
-function StepView({ index, lang, industry, onStart, onSelectIndustry, industryToast }) {
+function StepView({
+  index, lang, industry, difficulty, onStart,
+  onSelectIndustry, onSelectDifficulty, industryToast,
+}) {
   switch (index) {
     case 0: return <StepIndustry lang={lang} selected={industry} onSelect={onSelectIndustry} toast={industryToast} />;
-    case 1: return <StepDifficulty lang={lang} />;
+    case 1: return <StepDifficulty lang={lang} selected={difficulty} onSelect={onSelectDifficulty} />;
     case 2: return <StepLive lang={lang} industry={industry} />;
     case 3: return <StepHints lang={lang} industry={industry} />;
-    case 4: return <StepResults lang={lang} industry={industry} />;
+    case 4: return <StepResults lang={lang} industry={industry} difficulty={difficulty} />;
     case 5: return <StepCta lang={lang} onStart={onStart} />;
     default: return null;
   }
@@ -321,6 +347,7 @@ function DemoModal({ open, onClose, onStart }) {
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
   const [industry, setIndustry] = useState('it');
+  const [difficulty, setDifficulty] = useState('medium');
   const [industryToast, setIndustryToast] = useState('');
   const [holdUntil, setHoldUntil] = useState(0);
   const tickRef = useRef(null);
@@ -332,6 +359,7 @@ function DemoModal({ open, onClose, onStart }) {
       setElapsed(0);
       setPaused(false);
       setIndustry('it');
+      setDifficulty('medium');
       setIndustryToast('');
       setHoldUntil(0);
     }
@@ -401,6 +429,11 @@ function DemoModal({ open, onClose, onStart }) {
     setHoldUntil(Date.now() + 3000);
   }
 
+  function handleSelectDifficulty(key) {
+    setDifficulty(key);
+    setHoldUntil(Date.now() + 3000);
+  }
+
   return (
     <AnimatePresence>
       {open && (
@@ -443,8 +476,10 @@ function DemoModal({ open, onClose, onStart }) {
                     index={idx}
                     lang={lang}
                     industry={industry}
+                    difficulty={difficulty}
                     onStart={handleStart}
                     onSelectIndustry={handleSelectIndustry}
+                    onSelectDifficulty={handleSelectDifficulty}
                     industryToast={industryToast}
                   />
                 </motion.div>

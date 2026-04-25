@@ -139,7 +139,13 @@
   flex-direction: column;
   gap: 6px;
   text-align: left;
+  font-family: inherit;
+  cursor: pointer;
   transition: border-color 200ms, background 200ms;
+}
+.demo-diff-card:hover {
+  border-color: var(--border-accent-hover);
+  background: var(--ink-700);
 }
 .demo-diff-label {
   font-size: 14px;
@@ -152,8 +158,15 @@
 }
 .demo-diff-card.glow {
   border-color: var(--iris-500);
+  border-width: 2px;
+  padding: 17px 13px;
   background: rgba(124, 58, 237, 0.08);
   box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12), 0 0 32px rgba(124, 58, 237, 0.25);
+}
+.demo-res-meta {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 4px;
 }
 
 /* ---------- Step 3: Live session ---------- */

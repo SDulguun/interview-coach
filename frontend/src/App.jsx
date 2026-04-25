@@ -14,7 +14,7 @@ import HistoryView from './components/HistoryView';
 import InterviewGuides from './components/InterviewGuides';
 import { CommandPalette, PageTransition } from './components/ui';
 
-// Easy/Medium: 15 questions. Hard: 17 questions (adds company-context depth).
+// Easy: 10 questions. Medium: 15 questions. Hard: 20 questions.
 
 function App() {
   const [currentUser, setCurrentUserState] = useState(() => getCurrentUser());
