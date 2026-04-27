@@ -61,11 +61,54 @@ const COMPANY_CONTEXTS = {
   },
 };
 
+// Industry-keyed fallbacks for jobs that aren't in COMPANY_CONTEXTS — keeps
+// the interviewer's company line plausible instead of a generic "manai bayguullaga".
+const INDUSTRY_FALLBACKS = {
+  mn: {
+    tech: { name: 'AltanLink Technologies', desc: 'Дотоодын IT шийдлийг үндэсний хэмжээнд нэвтрүүлдэг компани.' },
+    finance: { name: 'TugrikTrust Capital', desc: 'Хувийн хадгаламж, корпорат санхүүгийн үйлчилгээ үзүүлдэг.' },
+    marketing: { name: 'BrightSteppe Agency', desc: 'Брэндийн стратеги, дижитал маркетингийн агентлаг.' },
+    education: { name: 'NuruuLearn Academy', desc: 'Орчин үеийн сургалтын платформ хөгжүүлдэг.' },
+    health: { name: 'SaikhanCare Clinic', desc: 'Хувийн эмнэлэг, үйлчилгээ голчилсон үндсэн нэгж.' },
+    engineering: { name: 'BatBuild Engineering', desc: 'Дэд бүтэц, барилгын инженерийн төсөл хариуцдаг.' },
+    hospitality: { name: 'GerLuxe Hospitality', desc: 'Аялал жуулчлал, зочид буудлын үйлчилгээний группа.' },
+    legal: { name: 'TungalagLaw Partners', desc: 'Корпорат хууль зүйн зөвлөх үйлчилгээ үзүүлдэг.' },
+    design: { name: 'TsasanArt Studio', desc: 'UI/UX, брэнд дизайн зориулсан студи.' },
+    other: { name: 'Khanbogd Group', desc: 'Олон салбарт үйл ажиллагаа явуулдаг бизнесийн групп.' },
+  },
+  en: {
+    tech: { name: 'AltanLink Technologies', desc: 'Domestic IT solutions deployed at national scale.' },
+    finance: { name: 'TugrikTrust Capital', desc: 'Personal savings and corporate finance services.' },
+    marketing: { name: 'BrightSteppe Agency', desc: 'Brand strategy and digital marketing agency.' },
+    education: { name: 'NuruuLearn Academy', desc: 'Modern learning platform for working professionals.' },
+    health: { name: 'SaikhanCare Clinic', desc: 'Private clinic focused on patient-centric care.' },
+    engineering: { name: 'BatBuild Engineering', desc: 'Infrastructure and civil engineering project leader.' },
+    hospitality: { name: 'GerLuxe Hospitality', desc: 'Travel and hospitality group operating premium properties.' },
+    legal: { name: 'TungalagLaw Partners', desc: 'Corporate legal advisory and compliance services.' },
+    design: { name: 'TsasanArt Studio', desc: 'UI/UX and brand design studio for digital products.' },
+    other: { name: 'Khanbogd Group', desc: 'Diversified business group across multiple sectors.' },
+  },
+};
+
+function _industryKey(jobTitle = '') {
+  const t = (jobTitle || '').toLowerCase();
+  if (/it|програм|developer|engineer|software|tech/.test(t)) return 'tech';
+  if (/санхүү|finance|банк|bank|account|audit|нягтлан/.test(t)) return 'finance';
+  if (/маркетинг|marketing|brand|advert|seo|smm/.test(t)) return 'marketing';
+  if (/боловсрол|education|teacher|багш|tutor|сургалт/.test(t)) return 'education';
+  if (/эрүүл|health|doctor|nurse|сувилагч|эмч/.test(t)) return 'health';
+  if (/инженер|engineering|механик|үйлдвэр|construction/.test(t)) return 'engineering';
+  if (/зочлох|hospitality|hotel|зоог|tourism|аялал/.test(t)) return 'hospitality';
+  if (/хууль|legal|law|өмгөөлөг/.test(t)) return 'legal';
+  if (/дизайн|design|ux|ui|art|creative|уран/.test(t)) return 'design';
+  return 'other';
+}
+
 function getCompanyContext(jobTitle, lang) {
   const ctxMap = COMPANY_CONTEXTS[lang] || COMPANY_CONTEXTS.mn;
-  return ctxMap[jobTitle] || (lang === 'mn'
-    ? { name: 'Манай байгууллага', desc: 'Салбартаа тэргүүлэгч, хөгжиж буй компани.' }
-    : { name: 'Our Organization', desc: 'A leading and growing company in its field.' });
+  if (ctxMap[jobTitle]) return ctxMap[jobTitle];
+  const fallbacks = INDUSTRY_FALLBACKS[lang] || INDUSTRY_FALLBACKS.mn;
+  return fallbacks[_industryKey(jobTitle)] || fallbacks.other;
 }
 
 /* ============================================================
@@ -452,6 +495,10 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
   const streamRef = useRef(null);
   const transcriptEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const lastSubmitRef = useRef(0);
+  const manuallyStoppedRef = useRef(false);
+  const recordingStartRef = useRef(0);
+  const restartCountRef = useRef(0);
 
   /* ─── COMPUTED ─── */
   const timeConfig = (TIME_CONFIG[inputMode] || TIME_CONFIG.text)[difficulty] || TIME_CONFIG.text.medium;
@@ -557,11 +604,14 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
     return () => clearInterval(timer);
   }, [questionTime, phase]);
 
-  // Auto-advance (skip question when timer expires)
+  // Auto-advance (skip question when timer expires).
+  // Never fires while voice capture is active — voice answers end only when
+  // the user explicitly submits (clicks Илгээх → or stops the recording).
   useEffect(() => {
     if (phase !== 'questioning' || !questionTypingDone) return;
+    if (recording || transcribing) return;
     if (questionElapsed >= timeConfig.autoAdvance) handleAutoSkip();
-  }, [questionElapsed, phase, questionTypingDone]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [questionElapsed, phase, questionTypingDone, recording, transcribing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Focus textarea when answer input becomes ready
   useEffect(() => {
@@ -649,7 +699,12 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
     onSessionEnd(answers, totalDuration);
   }
 
-  function handleTextSubmit() { submitAnswer(inputText); }
+  function handleTextSubmit() {
+    const now = Date.now();
+    if (now - lastSubmitRef.current < 1000) return;
+    lastSubmitRef.current = now;
+    submitAnswer(inputText);
+  }
 
   /* ─── RECORDING ─── */
 
@@ -679,10 +734,19 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
       const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+      manuallyStoppedRef.current = false;
+      recordingStartRef.current = Date.now();
+      console.log('[voice] start', { ts: Date.now(), mime: mimeType, restart: restartCountRef.current });
 
-      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+          console.log('[voice] chunk', { ts: Date.now(), size: e.data.size, total: chunksRef.current.length });
+        }
+      };
 
-      mediaRecorder.onerror = () => {
+      mediaRecorder.onerror = (ev) => {
+        console.error('[voice] error', { ts: Date.now(), err: ev?.error?.name || ev });
         setRecording(false);
         stream.getTracks().forEach((tr) => tr.stop());
         streamRef.current = null;
@@ -691,11 +755,26 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
       };
 
       mediaRecorder.onstop = async () => {
+        const elapsed = Date.now() - recordingStartRef.current;
+        const wasManual = manuallyStoppedRef.current;
+        console.log('[voice] stop', { ts: Date.now(), elapsedMs: elapsed, manual: wasManual, chunks: chunksRef.current.length });
         stream.getTracks().forEach((tr) => tr.stop());
         streamRef.current = null;
         const usedMime = mediaRecorder.mimeType || 'audio/webm';
         const ext = getFileExtension(usedMime);
         const blob = new Blob(chunksRef.current, { type: usedMime });
+
+        // Auto-restart on unexpected stop (e.g. browser timeout) up to 2 times,
+        // unless we already captured useful audio. The user's mid-sentence pauses
+        // should never end recording — only their explicit Stop click should.
+        if (!wasManual && elapsed < 2000 && restartCountRef.current < 2) {
+          restartCountRef.current += 1;
+          console.warn('[voice] unexpected early stop — restarting', { restart: restartCountRef.current });
+          chunksRef.current = [];
+          startRecording();
+          return;
+        }
+        restartCountRef.current = 0;
 
         if (blob.size < 100) {
           setAudioError(lang === 'mn' ? 'Дуу бичигдээгүй. Микрофоноо шалгана уу.' : 'No audio captured. Check your mic.');
@@ -711,9 +790,14 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
           formData.append('question', currentQuestion?.question || '');
           const result = await transcribeAudio(formData);
           const transcription = result.transcription || '';
+          console.log('[voice] transcribed', { ts: Date.now(), chars: transcription.length });
           if (transcription.trim()) { submitAnswer(transcription); }
           else { setAudioError(t('audio_err_empty')); setTimeout(() => setAudioError(''), 5000); }
-        } catch { setAudioError(t('audio_err_fail')); setTimeout(() => setAudioError(''), 5000); }
+        } catch (e) {
+          console.error('[voice] transcribe failed', e);
+          setAudioError(t('audio_err_fail'));
+          setTimeout(() => setAudioError(''), 5000);
+        }
         finally { setTranscribing(false); }
       };
 
@@ -732,7 +816,12 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
   }
 
   function stopRecording() {
+    const now = Date.now();
+    if (now - lastSubmitRef.current < 1000) return;
+    lastSubmitRef.current = now;
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      manuallyStoppedRef.current = true;
+      console.log('[voice] manual stop click', { ts: now });
       mediaRecorderRef.current.stop();
       setRecording(false);
     }
@@ -805,7 +894,7 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
                 </div>
                 <div className="pre-interview-phase">
                   <span className="phase-dot phase-dot-ending" />
-                  <span>{lang === 'mn' ? 'Хаалт — зорилго, таны асуултууд' : 'Closing — goals, your questions'}</span>
+                  <span>{lang === 'mn' ? 'Хаалт — зорилго, Таны асуултууд' : 'Closing — goals, your questions'}</span>
                 </div>
               </div>
             </div>
