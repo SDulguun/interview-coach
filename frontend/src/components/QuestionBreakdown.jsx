@@ -99,7 +99,7 @@ function QuestionBreakdown({
           <div className="qb-error">
             <span>{error}</span>
             <button type="button" onClick={() => onRetry?.()}>
-              {lang === 'mn' ? 'Дахин оролдох' : 'Try again'}
+              {lang === 'mn' ? 'Дахин Оролдох' : 'Try Again'}
             </button>
           </div>
         )}
@@ -115,7 +115,7 @@ function QuestionBreakdown({
             {/* 2. User's answer */}
             <section className="qb-sec">
               <div className="qb-sec-head">
-                <span className="label">{lang === 'mn' ? 'Таны хариулт' : 'Your answer'}</span>
+                <span className="label">{lang === 'mn' ? 'Таны Хариулт' : 'Your Answer'}</span>
                 <span className="mono qb-meta">
                   {data.word_count} {lang === 'mn' ? 'үг' : 'words'} · {formatDuration(data.duration_seconds)}
                 </span>
@@ -152,7 +152,7 @@ function QuestionBreakdown({
 
             {/* 4. Strengths */}
             <section className="qb-sec">
-              <div className="label">{lang === 'mn' ? 'Сайн хийсэн зүйл' : 'What went well'}</div>
+              <div className="label">{lang === 'mn' ? 'Сайн Хийсэн Зүйл' : 'What Went Well'}</div>
               <ul className="qb-bullets">
                 {data.strengths.map((s, i) => (
                   <li key={i} className="qb-bullet">
@@ -167,7 +167,7 @@ function QuestionBreakdown({
 
             {/* 5. Improvements */}
             <section className="qb-sec">
-              <div className="label">{lang === 'mn' ? 'Сайжруулах боломж' : 'What to improve'}</div>
+              <div className="label">{lang === 'mn' ? 'Сайжруулах Боломж' : 'What to Improve'}</div>
               <ul className="qb-bullets">
                 {data.improvements.map((s, i) => (
                   <li key={i} className="qb-bullet">
@@ -183,7 +183,7 @@ function QuestionBreakdown({
             {/* 6. Sample answers */}
             <section className="qb-sec">
               <div className="label">
-                {lang === 'mn' ? 'Жишээ хариулт' : 'Sample answers'}
+                {lang === 'mn' ? 'Жишээ Хариулт' : 'Sample Answers'}
                 <span className="qb-source-badge">
                   {data.source === 'llm'
                     ? (lang === 'mn' ? 'AI' : 'AI')
@@ -195,8 +195,8 @@ function QuestionBreakdown({
                   <div key={i} className="qb-sample">
                     <span className={`qb-sample-tag ${sa.quality === 'best' ? 'qb-tag-green' : 'qb-tag-iris'}`}>
                       {sa.quality === 'best'
-                        ? (lang === 'mn' ? 'Хамгийн сайн' : 'Best')
-                        : (lang === 'mn' ? 'Илүү сайн' : 'Better')}
+                        ? (lang === 'mn' ? 'Хамгийн Сайн' : 'Best')
+                        : (lang === 'mn' ? 'Илүү Сайн' : 'Better')}
                     </span>
                     <p className="qb-sample-text">{sa.text}</p>
                   </div>

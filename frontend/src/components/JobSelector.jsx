@@ -180,8 +180,8 @@ function JobSelector({ onJobSelect }) {
 
       {selected === OTHER_KEY && (
         <div className="selected-job-info">
-          <strong>{lang === 'mn' ? 'Бусад салбар' : 'Other Field'}</strong>
-          <p className="skills-description">{lang === 'mn' ? 'Ажлын чиглэлээ бичнэ үү. Ерөнхий асуултууд ашиглагдана.' : 'Enter your field. General questions will be used.'}</p>
+          <strong>{lang === 'mn' ? 'Бусад Салбар' : 'Other Field'}</strong>
+          <p className="skills-description">{lang === 'mn' ? 'Ажлын чиглэлээ бичээрэй. Ерөнхий асуултаар асууна.' : 'Enter your field. General questions will be used.'}</p>
           <input
             type="text"
             className="other-role-input"

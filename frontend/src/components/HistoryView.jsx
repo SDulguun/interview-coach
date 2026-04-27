@@ -7,7 +7,7 @@ import {
   CartesianGrid, Tooltip,
   Cell,
 } from 'recharts';
-import { ChevronDown, Trash2 } from 'lucide-react';
+import { ChevronRight, Trash2, RotateCcw } from 'lucide-react';
 import { useLang } from '../lang';
 import { getCurrentUser, userKey } from '../auth';
 import { formatTime } from '../utils';
@@ -161,7 +161,7 @@ function TopicBreakdownBlock({ history, lang }) {
   return (
     <div className="history-card">
       <h3 className="history-card-title">
-        {lang === 'mn' ? 'Сэдвийн хүчтэй / сул талууд' : 'Strengths and weaknesses by topic'}
+        {lang === 'mn' ? 'Сэдвээр давуу, сул тал' : 'Strengths and weaknesses by topic'}
       </h3>
       <div className="history-chart-wrap" style={{ height: data.length * 36 + 28 }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -212,13 +212,12 @@ function TopicBreakdownBlock({ history, lang }) {
   );
 }
 
-function SessionsListBlock({ history, onClear, lang }) {
+function SessionsListBlock({ history, onClear, onOpen, lang }) {
   const { t } = useLang();
-  const [expanded, setExpanded] = useState(null);
 
   function handleClear() {
     const msg = lang === 'mn'
-      ? 'Бүх түүх устгах уу? Энэ үйлдлийг буцаах боломжгүй.'
+      ? 'Бүх түүхээ цэвэрлэх үү? Буцаах боломжгүй шүү.'
       : 'Clear all history? This cannot be undone.';
     if (window.confirm(msg)) onClear();
   }
@@ -230,7 +229,7 @@ function SessionsListBlock({ history, onClear, lang }) {
           <h3 className="history-card-title">{t('history_title')}</h3>
         </div>
         <p className="history-empty-text" style={{ paddingLeft: 0 }}>
-          {lang === 'mn' ? 'Одоогоор ярилцлага байхгүй байна.' : 'No interview sessions yet.'}
+          {lang === 'mn' ? 'Одоохондоо ярилцлага алга. Эхнийхээ хийгээрэй.' : 'No interview sessions yet.'}
         </p>
       </div>
     );
@@ -248,20 +247,25 @@ function SessionsListBlock({ history, onClear, lang }) {
 
       <div className="history-list">
         {history.map((item, i) => {
-          const isOpen = expanded === i;
           const hasDetail = item.questions && item.answers && item.results;
           const score = Math.round(item.score);
           return (
-            <div key={i} className={`history-row-wrap ${isOpen ? 'open' : ''}`}>
+            <div key={i} className="history-row-wrap">
               <button
                 type="button"
                 className="history-row"
-                onClick={() => hasDetail && setExpanded(isOpen ? null : i)}
+                onClick={() => hasDetail && onOpen?.(item)}
                 disabled={!hasDetail}
               >
                 <span className="history-row-date mono">{formatDateShort(item.date)}</span>
                 <span className="history-row-meta">
                   {item.category && <span className="history-row-cat">{item.category}</span>}
+                  {item.repractice && (
+                    <span className="history-row-tag">
+                      <RotateCcw size={10} strokeWidth={1.6} />
+                      {lang === 'mn' ? 'Дахин Дасгал' : 'Re-Practice'}
+                    </span>
+                  )}
                   {item.questionsAnswered != null && (
                     <span className="history-row-q">
                       {item.questionsAnswered}/{item.totalQuestions || 15} {t('history_questions_count')}
@@ -273,50 +277,9 @@ function SessionsListBlock({ history, onClear, lang }) {
                 </span>
                 <span className={`history-row-score mono ${scoreClass(score)}`}>{score}</span>
                 {hasDetail && (
-                  <ChevronDown
-                    size={14}
-                    strokeWidth={1.5}
-                    className={`history-row-chev ${isOpen ? 'open' : ''}`}
-                  />
+                  <ChevronRight size={14} strokeWidth={1.5} className="history-row-chev" />
                 )}
               </button>
-
-              {isOpen && hasDetail && (
-                <div className="history-row-detail">
-                  {item.results.aggregate?.dimension_scores && (
-                    <div className="history-detail-dims">
-                      {Object.entries(item.results.aggregate.dimension_scores).map(([k, v]) => {
-                        const val = Math.round(Number(v));
-                        return (
-                          <div key={k} className="history-dim-row">
-                            <span className="history-dim-label">{k}</span>
-                            <div className="history-dim-track">
-                              <div
-                                className="history-dim-fill"
-                                style={{ width: `${val}%`, background: scoreToken(val) }}
-                              />
-                            </div>
-                            <span className="history-dim-val mono" style={{ color: scoreToken(val) }}>
-                              {val}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {item.results.aggregate?.improvements?.length > 0 && (
-                    <div className="history-detail-bullets">
-                      <div className="label">{t('improvements')}</div>
-                      <ul>
-                        {item.results.aggregate.improvements.slice(0, 3).map((s, si) => (
-                          <li key={si}>{s}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           );
         })}
@@ -325,7 +288,7 @@ function SessionsListBlock({ history, onClear, lang }) {
   );
 }
 
-function HistoryView({ onStartNew }) {
+function HistoryView({ onStartNew, onOpenSession }) {
   const { t, lang } = useLang();
   const user = getCurrentUser();
   const histKey = userKey(user?.id, 'history');
@@ -361,31 +324,31 @@ function HistoryView({ onStartNew }) {
       <div className="history-stats">
         <StatCard
           value={stats.count || '—'}
-          label={lang === 'mn' ? 'Нийт дасгал' : 'Total sessions'}
+          label={lang === 'mn' ? 'Нийт Дасгал' : 'Total Sessions'}
           mono
         />
         <StatCard
           value={stats.avg != null ? stats.avg : '—'}
-          label={lang === 'mn' ? 'Дундаж оноо' : 'Average score'}
+          label={lang === 'mn' ? 'Дундаж Оноо' : 'Average Score'}
           color={scoreClass(stats.avg)}
           mono
         />
         <StatCard
           value={stats.best != null ? stats.best : '—'}
-          label={lang === 'mn' ? 'Шилдэг оноо' : 'Best score'}
+          label={lang === 'mn' ? 'Шилдэг Оноо' : 'Best Score'}
           color={scoreClass(stats.best)}
           mono
         />
         <StatCard
           value={formatHoursMin(stats.totalSec, lang)}
-          label={lang === 'mn' ? 'Нийт цаг' : 'Total time'}
+          label={lang === 'mn' ? 'Нийт Цаг' : 'Total Time'}
           mono
         />
       </div>
 
       <ProgressChartBlock history={history} lang={lang} />
       <TopicBreakdownBlock history={history} lang={lang} />
-      <SessionsListBlock history={history} onClear={handleClear} lang={lang} />
+      <SessionsListBlock history={history} onClear={handleClear} onOpen={onOpenSession} lang={lang} />
 
       <div className="history-cta">
         <button className="btn btn-primary" onClick={onStartNew}>

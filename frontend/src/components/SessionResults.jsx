@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, ChevronDown, Download } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronDown, Layers } from 'lucide-react';
 import { useLang } from '../lang';
 import { classifyQuestion, formatTime } from '../utils';
 import { Button, ProgressBar, ScoreCounter } from './ui';
@@ -49,7 +49,7 @@ function formatDate(d) {
   return `${day}.${month}.${year} · ${hours}:${mins}`;
 }
 
-function SessionResults({ results, answers, questions = [], totalQuestions, onRestart, onBack, difficulty, jobTitle, userName, sessionId = 'anon' }) {
+function SessionResults({ results, answers, questions = [], totalQuestions, onRestart, onBack, difficulty, jobTitle, userName, sessionId = 'anon', onPracticeQuestion }) {
   const { t, lang } = useLang();
   const [openIndex, setOpenIndex] = useState(null);
   const cacheRef = useRef(new Map());
@@ -205,10 +205,39 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
             <ScoreCounter target={score} duration={1200} suffix="" />
           </div>
           <div className="subtle results-score-label">
-            {lang === 'mn' ? 'Ерөнхий оноо' : 'Overall score'}
+            {lang === 'mn' ? 'Ерөнхий Оноо' : 'Overall Score'}
           </div>
         </div>
       </header>
+
+      {/* ── Re-practice comparison banner ── */}
+      {session?.repractice && session?.originalScore != null && (() => {
+        const orig = Math.round(session.originalScore);
+        const newS = Math.round(session.newScore ?? score);
+        const delta = newS - orig;
+        const dir = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+        return (
+          <div className={`results-repractice results-repractice-${dir}`}>
+            <span className="results-repractice-label mono">
+              {lang === 'mn' ? 'Дахин Дасгал' : 'Re-Practice'}
+            </span>
+            <span className="results-repractice-compare">
+              <span className="muted">
+                {lang === 'mn' ? 'Өмнөх Оноо:' : 'Previous:'}
+              </span>
+              <span className="mono">{orig}</span>
+              <ArrowRight size={12} strokeWidth={1.5} />
+              <span className="muted">
+                {lang === 'mn' ? 'Шинэ Оноо:' : 'New:'}
+              </span>
+              <span className={`mono ${scoreColorClass(newS)}`}>{newS}</span>
+              <span className={`results-repractice-delta mono ${dir}`}>
+                {delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : '±0'}
+              </span>
+            </span>
+          </div>
+        );
+      })()}
 
       {/* ── Stats row ── */}
       <section className="results-stats">
@@ -230,7 +259,7 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
         <div className="card results-breakdown">
           <div className="results-breakdown-head">
             <div className="label">
-              {lang === 'mn' ? 'Асуулт тус бүрийн задаргаа' : 'Per-question breakdown'}
+              {lang === 'mn' ? 'Асуулт Тус Бүрийн Задаргаа' : 'Per-Question Breakdown'}
             </div>
             <button
               type="button"
@@ -238,12 +267,12 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
               onClick={startPrefetch}
               disabled={prefetch.active || allCached}
             >
-              <Download size={12} strokeWidth={1.5} />
+              <Layers size={12} strokeWidth={1.5} />
               {allCached
-                ? (lang === 'mn' ? 'Бүх задаргаа бэлэн ✓' : 'All breakdowns ready ✓')
+                ? (lang === 'mn' ? 'Бэлэн Боллоо ✓' : 'Ready ✓')
                 : prefetch.active
                   ? <span className="mono">{prefetch.done} / {prefetch.total}</span>
-                  : (lang === 'mn' ? 'Бүх задаргаа урьдчилан татах' : 'Prefetch all breakdowns')}
+                  : (lang === 'mn' ? 'Бүгдийг Ачаалах' : 'Load All')}
             </button>
           </div>
           <div className="results-breakdown-list">
@@ -287,7 +316,13 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
                         cache={cacheRef.current}
                         onCached={handleCached}
                         onRetry={() => { setOpenIndex(null); setTimeout(() => setOpenIndex(row.i), 0); }}
-                        onPracticeAgain={() => { /* TODO: deep-link single question */ onRestart?.(); }}
+                        onPracticeAgain={() => {
+                          if (onPracticeQuestion) {
+                            onPracticeQuestion(q, row.score);
+                          } else {
+                            onRestart?.();
+                          }
+                        }}
                       />
                     )}
                   </AnimatePresence>
@@ -298,7 +333,7 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
           {perQuestionRows.length > 15 && (
             <button className="btn btn-ghost results-breakdown-more" type="button">
               {lang === 'mn'
-                ? `Бүх ${perQuestionRows.length} асуулт харах`
+                ? `${perQuestionRows.length} асуултыг бүгдийг харах`
                 : `View all ${perQuestionRows.length} questions`}
             </button>
           )}
@@ -306,7 +341,7 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
 
         <div className="card results-recs">
           <div className="label">
-            {lang === 'mn' ? 'Гол 3 зөвлөмж' : 'Top 3 recommendations'}
+            {lang === 'mn' ? 'Гол 3 Зөвлөмж' : 'Top 3 Recommendations'}
           </div>
           <ol className="results-recs-list">
             {topRecs.map((rec, idx) => (
@@ -318,13 +353,13 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
             {topRecs.length === 0 && (
               <li className="subtle" style={{ padding: '16px 0' }}>
                 {lang === 'mn'
-                  ? 'Тусгай зөвлөмж алга — хариултууд нийцсэн байна.'
+                  ? 'Тусгай зөвлөмж алга — хариултууд тань сайн.'
                   : 'No specific suggestions — answers look strong.'}
               </li>
             )}
           </ol>
           <Button onClick={onRestart} style={{ width: '100%', marginTop: 'auto' }}>
-            {lang === 'mn' ? 'Дахин дасгал хий' : 'Practice again'}
+            {lang === 'mn' ? 'Дахин Дасгал Хий' : 'Practice Again'}
             <ArrowRight size={14} strokeWidth={1.5} />
           </Button>
         </div>

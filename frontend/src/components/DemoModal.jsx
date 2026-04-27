@@ -104,12 +104,12 @@ const RESULT_TOPICS = {
 
 const CAPTIONS = {
   mn: [
-    'Салбараа сонго — асуултууд тухайн салбарт тохирно.',
-    'Хүндрэлийн түвшнээ сонго.',
+    'Салбараа сонгоно уу — асуултууд тань салбарт нийцнэ.',
+    'Түвшнээ сонгоорой.',
     'Бичгээр эсвэл дуугаар хариул.',
-    'AI бодит цагт зөвлөмж өгнө.',
-    'Үр дүн, давуу талууд, сайжруулах хэсгүүдийг харна.',
-    'Бэлэн үү? Үнэгүй эхлэх.',
+    'AI шууд зөвлөмж өгнө.',
+    'Үр дүн, давуу тал, сайжруулах талаа харна.',
+    'Бэлэн үү?',
   ],
   en: [
     'Pick your industry — questions adapt.',
@@ -294,7 +294,7 @@ function StepResults({ lang, industry, difficulty }) {
       <div className="demo-mini-results">
         <div className="demo-res-row">
           <div className="demo-res-left">
-            <div className="label">{lang === 'mn' ? 'Ерөнхий оноо' : 'Overall score'}</div>
+            <div className="label">{lang === 'mn' ? 'Ерөнхий Оноо' : 'Overall Score'}</div>
             <div className="demo-res-score gradient-text mono">
               <ScoreCounter target={78} duration={1400} />
             </div>

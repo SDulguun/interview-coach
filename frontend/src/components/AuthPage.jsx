@@ -23,7 +23,7 @@ export default function AuthPage({ onLogin, onGuest }) {
       return;
     }
     if (password.trim().length < 4) {
-      setError(lang === 'mn' ? 'Нууц үг дор хаяж 4 тэмдэгт байх ёстой' : 'Password must be at least 4 characters');
+      setError(lang === 'mn' ? 'Нууц үг хамгийн багадаа 4 тэмдэгт байх хэрэгтэй' : 'Password must be at least 4 characters');
       return;
     }
 
@@ -52,7 +52,7 @@ export default function AuthPage({ onLogin, onGuest }) {
         onLogin(result.user);
       }
     } catch {
-      setError(lang === 'mn' ? 'Алдаа гарлаа. Дахин оролдоно уу.' : 'An error occurred. Please try again.');
+      setError(lang === 'mn' ? 'Ямар нэг алдаа гарлаа. Дахин оролдоорой.' : 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -67,12 +67,12 @@ export default function AuthPage({ onLogin, onGuest }) {
           </div>
           <h2 className="auth-title">
             {mode === 'login'
-              ? (lang === 'mn' ? 'Тавтай морил' : 'Welcome back')
-              : (lang === 'mn' ? 'Бүртгэл үүсгэх' : 'Create account')}
+              ? (lang === 'mn' ? 'Тавтай Морил' : 'Welcome Back')
+              : (lang === 'mn' ? 'Бүртгэл Үүсгэх' : 'Create Account')}
           </h2>
           <p className="auth-sub subtle">
             {lang === 'mn'
-              ? 'Ярилцлагын дасгалаа үргэлжлүүлэх'
+              ? 'Ярилцлагын дасгалаа үргэлжлүүлээрэй'
               : 'Continue your interview practice'}
           </p>
 

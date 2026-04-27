@@ -12,23 +12,23 @@ function WelcomePage({ onStart, onOpenPalette }) {
   const features = [
     {
       Icon: MessageSquare,
-      title: lang === 'mn' ? 'Бодит ярилцлагын дасгал' : 'Realistic mock interviews',
+      title: lang === 'mn' ? 'Бодит Ярилцлагын Мэдрэмж' : 'Realistic Mock Interviews',
       body: lang === 'mn'
-        ? '15 хүртэл асуулттай бүрэн ярилцлага — танилцуулга, сэдэл, туршлага, мэргэжлийн хэсгээр.'
+        ? 'Жинхэнэ ярилцлагынх шиг асуултаар бэлдэж, өөртөө итгэлтэй болоорой.'
         : 'Full interviews with up to 15 questions covering introduction, motivation, experience, and technical topics.',
     },
     {
       Icon: TrendingUp,
-      title: lang === 'mn' ? 'Дэлгэрэнгүй үнэлгээ' : 'Detailed feedback',
+      title: lang === 'mn' ? 'Хариулт Тань Дээр Тулгуурласан Үнэлгээ' : 'Detailed Feedback',
       body: lang === 'mn'
-        ? 'Хариулт бүрийн бүтэц, агуулга, хамаарлыг шинжилж, тодорхой зөвлөмж өгнө.'
+        ? 'Юу амжилттай хэлсэн, юу сайжруулахаа хариулт бүрээс мэдэж аваарай.'
         : 'Structure, content, and relevance analysis with clear improvement tips for every answer.',
     },
     {
       Icon: CheckCircle,
-      title: lang === 'mn' ? '10+ мэргэжлийн салбар' : '10+ professional fields',
+      title: lang === 'mn' ? 'Монголын Зах Зээлд Тохирсон' : '10+ Professional Fields',
       body: lang === 'mn'
-        ? 'IT, санхүү, маркетинг, боловсрол — салбар бүрт тохирсон асуулт.'
+        ? 'Орон нутгийн ажил олгогчдын асуудаг асуултаар, монгол хэлээр бэлдээрэй.'
         : 'Tailored questions for IT, finance, marketing, education, and more.',
     },
   ];
@@ -40,7 +40,12 @@ function WelcomePage({ onStart, onOpenPalette }) {
           <div className="landing-nav-inner">
             <div className="landing-brand">
               <div className="landing-brand-icon">IC</div>
-              <span className="landing-brand-name">InterviewCoach</span>
+              <span className="landing-brand-name">
+                InterviewCoach
+                {lang === 'mn' && (
+                  <span className="landing-brand-accent" aria-hidden="true">⁂</span>
+                )}
+              </span>
             </div>
             <nav className="landing-nav-right">
               <a className="landing-nav-link" href="#footer">
@@ -56,27 +61,33 @@ function WelcomePage({ onStart, onOpenPalette }) {
               <button className="landing-lang-btn" onClick={toggleLang}>
                 {lang === 'mn' ? 'EN' : 'MN'}
               </button>
-              <Button size="sm" onClick={onStart}>
-                {lang === 'mn' ? 'Эхлэх' : 'Start'}
-              </Button>
             </nav>
           </div>
         </header>
 
         <section className="landing-hero">
-          <GlowBackground color="#7c3aed" size={320} opacity={0.35} top={-60} left="30%" />
-          <GlowBackground color="#ec4899" size={220} opacity={0.2} bottom={-40} right="10%" />
+          {lang === 'mn' ? (
+            <>
+              <GlowBackground color="#3b82f6" size={340} opacity={0.32} top={-60} left="28%" />
+              <GlowBackground color="#d4a574" size={240} opacity={0.22} bottom={-40} right="10%" />
+            </>
+          ) : (
+            <>
+              <GlowBackground color="#7c3aed" size={320} opacity={0.35} top={-60} left="30%" />
+              <GlowBackground color="#ec4899" size={220} opacity={0.2} bottom={-40} right="10%" />
+            </>
+          )}
 
           <div className="landing-hero-tag float-y">
             <span className="tag-dot" />
-            {lang === 'mn' ? 'Шинэ — Илтгэх дасгал' : 'New — speaking practice'}
+            {lang === 'mn' ? 'Шинэ — Уран яриагаа уулзалтад бэлдэе' : 'New — speaking practice'}
           </div>
 
           <h1 className="landing-hero-title">
             {lang === 'mn' ? (
               <>
                 <span>Ярилцлагын өмнөх</span>
-                <span className="gradient-text">сүүлийн бэлтгэл.</span>
+                <span className="gradient-text gradient-tengri">сүүлийн бэлтгэл.</span>
               </>
             ) : (
               <>
@@ -88,13 +99,13 @@ function WelcomePage({ onStart, onOpenPalette }) {
 
           <p className="landing-hero-sub">
             {lang === 'mn'
-              ? 'Бодит асуултуудад дасгал хийж, хариулт бүрдээ дэлгэрэнгүй үнэлгээ аваарай.'
+              ? 'Бодит асуултуудаар дасгалаа хийж, хариулт бүрдээ нарийн үнэлгээ, тодорхой зөвлөмж аваарай.'
               : 'Practice real questions and get detailed feedback on every answer.'}
           </p>
 
           <div className="landing-hero-actions">
             <Button size="lg" onClick={onStart}>
-              {lang === 'mn' ? 'Ярилцлага эхлүүлэх' : 'Start interview'}
+              {lang === 'mn' ? 'Ярилцлага Эхлүүлэх' : 'Start Interview'}
               <ArrowRight size={16} strokeWidth={1.5} />
             </Button>
             <Button variant="ghost" size="lg" onClick={() => setDemoOpen(true)}>
@@ -105,7 +116,7 @@ function WelcomePage({ onStart, onOpenPalette }) {
 
           <div className="landing-hero-meta">
             <span>◆ {lang === 'mn' ? 'AI-аар үнэлдэг' : 'AI-evaluated'}</span>
-            <span>◆ {lang === 'mn' ? 'Монгол хэл дээр' : 'Mongolian + English'}</span>
+            <span>◆ {lang === 'mn' ? 'Монгол Хэл Дээр' : 'Mongolian + English'}</span>
             <span>◆ {lang === 'mn' ? 'Үнэгүй' : 'Free'}</span>
           </div>
         </section>
@@ -126,18 +137,21 @@ function WelcomePage({ onStart, onOpenPalette }) {
 
         <section className="landing-final-cta">
           <h2>
-            {lang === 'mn' ? 'Дасгалаа эхлүүлэхэд бэлэн үү?' : 'Ready to start practicing?'}
+            {lang === 'mn' ? 'Анхны асуултаа хүлээж авахад бэлэн үү?' : 'Ready to start practicing?'}
           </h2>
           <Button size="lg" onClick={onStart}>
-            {lang === 'mn' ? 'Ярилцлага эхлүүлэх' : 'Start interview'}
+            {lang === 'mn' ? 'Ярилцлага Эхлүүлэх' : 'Start Interview'}
             <ArrowRight size={16} strokeWidth={1.5} />
           </Button>
         </section>
 
         <footer className="landing-footer" id="footer">
           <span className="faint">InterviewCoach</span>
+          {lang === 'mn' && (
+            <span className="landing-footer-olzii" aria-hidden="true">⊛</span>
+          )}
           <span className="faint">
-            {lang === 'mn' ? 'Монгол, Англи хэлээр дэмжигдсэн' : 'Mongolian & English supported'}
+            {lang === 'mn' ? 'Монгол хэлнээ дөхөм, англи хэлэнд бэлэн' : 'Mongolian & English supported'}
           </span>
         </footer>
       </div>

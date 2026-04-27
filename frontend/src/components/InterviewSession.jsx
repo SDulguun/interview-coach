@@ -752,7 +752,7 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
             </div>
 
             <div className="pre-interview-structure">
-              <h4>{lang === 'mn' ? 'Ярилцлагын бүтэц' : 'Interview Structure'}</h4>
+              <h4>{lang === 'mn' ? 'Ярилцлагын Бүтэц' : 'Interview Structure'}</h4>
               <div className="pre-interview-phases">
                 <div className="pre-interview-phase">
                   <span className="phase-dot phase-dot-opening" />
@@ -771,7 +771,7 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
           </div>
 
           <button className="btn btn-primary pre-interview-start" onClick={startInterview}>
-            {lang === 'mn' ? 'Ярилцлага эхлүүлэх' : 'Start Interview'}
+            {lang === 'mn' ? 'Ярилцлага Эхлүүлэх' : 'Start Interview'}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
           </button>
         </div>

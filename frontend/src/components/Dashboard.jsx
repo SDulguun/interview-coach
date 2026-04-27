@@ -72,7 +72,7 @@ const DIFFICULTY_MODES = [
   {
     key: 'easy', Icon: Smile, questions: 10, minutes: 15,
     label_mn: 'Хөнгөн', label_en: 'Easy',
-    desc_mn: 'Анхлан суралцагчдад', desc_en: 'For beginners',
+    desc_mn: 'Шинэ суралцагчдад', desc_en: 'For beginners',
   },
   {
     key: 'medium', Icon: BarChart3, questions: 15, minutes: 25,
@@ -83,7 +83,7 @@ const DIFFICULTY_MODES = [
   {
     key: 'hard', Icon: Star, questions: 20, minutes: 35,
     label_mn: 'Хүнд', label_en: 'Hard',
-    desc_mn: 'Гүнзгий шинжилгээ, trade-off', desc_en: 'Deep analysis, trade-offs',
+    desc_mn: 'Гүн шинжилгээ, олон талт асуудал', desc_en: 'Deep analysis, trade-offs',
   },
 ];
 
@@ -95,6 +95,7 @@ function Dashboard({
 }) {
   const { t, lang } = useLang();
   const [step, setStep] = useState(0);
+  const [customRole, setCustomRole] = useState(selectedJob?.isOther ? selectedJob.title : '');
 
   const steps = [
     { key: 'info',     label: lang === 'mn' ? 'Мэдээлэл'   : 'Info' },
@@ -104,11 +105,20 @@ function Dashboard({
   ];
 
   const activeMode = DIFFICULTY_MODES.find(m => m.key === difficulty) || DIFFICULTY_MODES[1];
-  const activeIndustry = selectedJob ? INDUSTRIES.find(x => x.key === selectedJob.title) : null;
+  const isOtherSelected = !!selectedJob?.isOther;
+  const activeIndustry = selectedJob
+    ? (isOtherSelected
+        ? INDUSTRIES.find(x => x.key === '__other__')
+        : INDUSTRIES.find(x => x.key === selectedJob.title))
+    : null;
 
   function canProceed() {
     if (step === 0) return userName.trim().length > 0;
-    if (step === 1) return !!selectedJob;
+    if (step === 1) {
+      if (!selectedJob) return false;
+      if (isOtherSelected && customRole.trim().length < 3) return false;
+      return true;
+    }
     return true;
   }
 
@@ -120,18 +130,41 @@ function Dashboard({
 
   function handleIndustrySelect(entry) {
     const isOther = entry.key === '__other__';
-    if (selectedJob?.title === entry.key) {
+    const sameTile = isOther
+      ? selectedJob?.isOther
+      : selectedJob?.title === entry.key;
+    if (sameTile) {
       onJobChange(null);
+      if (isOther) setCustomRole('');
       return;
     }
-    onJobChange({
-      id: null,
-      title: entry.key,
-      company: '',
-      description: '',
-      required_skills: entry.skills.join(', '),
-      isOther,
-    });
+    if (isOther) {
+      const trimmed = customRole.trim();
+      onJobChange({
+        id: null,
+        title: trimmed || '',
+        company: '',
+        description: '',
+        required_skills: entry.skills.join(', '),
+        isOther: true,
+      });
+    } else {
+      onJobChange({
+        id: null,
+        title: entry.key,
+        company: '',
+        description: '',
+        required_skills: entry.skills.join(', '),
+        isOther: false,
+      });
+    }
+  }
+
+  function handleCustomRoleChange(value) {
+    setCustomRole(value);
+    if (selectedJob?.isOther) {
+      onJobChange({ ...selectedJob, title: value.trim() });
+    }
   }
 
   return (
@@ -162,7 +195,7 @@ function Dashboard({
             <h2>{lang === 'mn' ? 'Таныг юу гэж дуудах вэ?' : 'What should we call you?'}</h2>
             <p className="subtle" style={{ margin: '6px 0 22px' }}>
               {lang === 'mn'
-                ? 'Нэрээ оруулаарай — ярилцлагын турш хувийн болгон ашиглана.'
+                ? 'Нэрээ бичээрэй — ярилцлагын явцад Таныг нэрээр нь дуудна.'
                 : 'Your name will be used to personalise the session.'}
             </p>
             <div className="wiz-field">
@@ -191,15 +224,17 @@ function Dashboard({
             <div className="label" style={{ marginBottom: 8 }}>
               {lang === 'mn' ? 'Алхам 2' : 'Step 2'}
             </div>
-            <h2>{lang === 'mn' ? 'Салбараа сонгоно уу' : 'Choose your industry'}</h2>
+            <h2>{lang === 'mn' ? 'Салбараа сонгоорой' : 'Choose your industry'}</h2>
             <p className="subtle" style={{ margin: '6px 0 22px' }}>
               {lang === 'mn'
-                ? 'Сонгосон салбартай холбоотой асуултуудаар дасгал хийнэ.'
+                ? 'Сонгосон салбарт тань тохирсон асуулт ирнэ.'
                 : 'Questions will be tailored to the selected industry.'}
             </p>
             <div className="industry-grid">
               {INDUSTRIES.map(({ key, Icon }) => {
-                const active = selectedJob?.title === key;
+                const active = key === '__other__'
+                  ? !!selectedJob?.isOther
+                  : selectedJob?.title === key && !selectedJob?.isOther;
                 const name = key === '__other__'
                   ? (lang === 'mn' ? 'Бусад' : 'Other')
                   : key;
@@ -224,8 +259,9 @@ function Dashboard({
             </div>
 
             <AnimatePresence>
-              {activeIndustry && (
+              {isOtherSelected && (
                 <motion.div
+                  key="other-input"
                   className="industry-detail"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
@@ -234,7 +270,34 @@ function Dashboard({
                 >
                   <div className="industry-detail-inner">
                     <div className="label">
-                      {lang === 'mn' ? 'Энэ салбарт шаардагдах гол ур чадварууд' : 'Core skills for this industry'}
+                      {lang === 'mn' ? 'Аль ажил мэргэжилд бэлдэж байна вэ?' : 'Which role are you preparing for?'}
+                    </div>
+                    <div className="wiz-field" style={{ marginTop: 8 }}>
+                      <input
+                        type="text"
+                        value={customRole}
+                        onChange={(e) => handleCustomRoleChange(e.target.value)}
+                        placeholder={lang === 'mn'
+                          ? 'Жишээ нь: HR менежер, дизайнер, орчуулагч...'
+                          : 'e.g. HR manager, designer, translator...'}
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              {activeIndustry && !isOtherSelected && (
+                <motion.div
+                  key="industry-detail"
+                  className="industry-detail"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                >
+                  <div className="industry-detail-inner">
+                    <div className="label">
+                      {lang === 'mn' ? 'Энэ салбарт хэрэгтэй гол ур чадварууд' : 'Core skills for this industry'}
                     </div>
                     <div className="industry-skills">
                       {activeIndustry.skills.map((s) => (
@@ -244,7 +307,7 @@ function Dashboard({
                     {activeIndustry.companies.length > 0 && (
                       <>
                         <div className="label" style={{ marginTop: 16 }}>
-                          {lang === 'mn' ? 'Жишээ компаниуд' : 'Example companies'}
+                          {lang === 'mn' ? 'Жишээ Байгууллагууд' : 'Example Companies'}
                         </div>
                         <div className="industry-companies">
                           {activeIndustry.companies.map((c) => (
@@ -277,10 +340,10 @@ function Dashboard({
             <div className="label" style={{ marginBottom: 8 }}>
               {lang === 'mn' ? 'Алхам 3' : 'Step 3'}
             </div>
-            <h2>{lang === 'mn' ? 'Түвшингээ сонгоно уу' : 'Choose a difficulty'}</h2>
+            <h2>{lang === 'mn' ? 'Түвшнээ сонгоорой' : 'Choose a difficulty'}</h2>
             <p className="subtle" style={{ margin: '6px 0 22px' }}>
               {lang === 'mn'
-                ? 'Түвшин нь асуултын тоо, гүнзгий байдалд нөлөөлнө.'
+                ? 'Сонгосон түвшингээс хамаарч асуултын тоо, түвшин өөрчлөгдөнө.'
                 : 'Difficulty affects question count and depth.'}
             </p>
 
@@ -299,7 +362,7 @@ function Dashboard({
                   >
                     {mode.recommended && (
                       <span className="mode-badge">
-                        {lang === 'mn' ? 'Санал болгох' : 'Recommended'}
+                        {lang === 'mn' ? 'Санал Болгох' : 'Recommended'}
                       </span>
                     )}
                     {active && (
@@ -337,10 +400,10 @@ function Dashboard({
             <div className="label" style={{ marginBottom: 8 }}>
               {lang === 'mn' ? 'Алхам 4' : 'Step 4'}
             </div>
-            <h2>{lang === 'mn' ? 'Бүх зүйл бэлэн' : "You're all set"}</h2>
+            <h2>{lang === 'mn' ? 'Бүгд бэлэн боллоо' : "You're all set"}</h2>
             <p className="subtle" style={{ margin: '6px 0 28px' }}>
               {lang === 'mn'
-                ? 'Доорх тохиргоог шалгаад ярилцлагаа эхлүүлээрэй.'
+                ? 'Доорх мэдээллээ нягталж, ярилцлагаа эхлүүлээрэй.'
                 : 'Double-check the setup and start when ready.'}
             </p>
 
@@ -360,7 +423,7 @@ function Dashboard({
               </div>
               <div className="summary-stat">
                 <span className="summary-value mono">~{activeMode.minutes} {lang === 'mn' ? 'мин' : 'min'}</span>
-                <span className="summary-label">{lang === 'mn' ? 'Үргэлжлэх хугацаа' : 'Duration'}</span>
+                <span className="summary-label">{lang === 'mn' ? 'Хугацаа' : 'Duration'}</span>
               </div>
             </div>
 
@@ -369,7 +432,7 @@ function Dashboard({
                 <Pill active>
                   <activeIndustry.Icon size={14} strokeWidth={1.5} />
                   {activeIndustry.key === '__other__'
-                    ? (lang === 'mn' ? 'Бусад' : 'Other')
+                    ? (selectedJob?.title?.trim() || (lang === 'mn' ? 'Бусад' : 'Other'))
                     : activeIndustry.key}
                 </Pill>
               </div>
@@ -388,7 +451,7 @@ function Dashboard({
               >
                 {loading
                   ? (lang === 'mn' ? 'Уншиж байна…' : 'Loading…')
-                  : (lang === 'mn' ? 'Ярилцлага эхлүүлэх' : 'Start interview')}
+                  : (lang === 'mn' ? 'Ярилцлага Эхлүүлэх' : 'Start Interview')}
                 {!loading && <ArrowRight size={16} strokeWidth={1.5} />}
               </Button>
             </div>
