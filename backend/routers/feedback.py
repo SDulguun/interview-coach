@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from ..nlp.pipeline import InterviewAnalyzer
 from ..nlp.feedback import _classify_question
+from ..nlp import llm_feedback
 
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
@@ -28,12 +29,25 @@ class BreakdownRequest(BaseModel):
 
 
 _NUMERIC_RE = re.compile(r"\b\d+([.,]\d+)?\b")
+_WORD_RE = re.compile(r"[\w'’]+", re.UNICODE)
 
 
 def _first_sentence(text: str) -> str:
     parts = re.split(r"[.!?…]+", text.strip(), maxsplit=1)
     s = parts[0].strip()
     return s[:80] + ("…" if len(s) > 80 else "") if s else ""
+
+
+def _tokens(text: str) -> set[str]:
+    return {w.lower() for w in _WORD_RE.findall(text or "") if len(w) > 2}
+
+
+def _lexical_overlap(a: str, b: str) -> float:
+    """Jaccard overlap on lowercased word tokens (>2 chars). 0..1."""
+    ta, tb = _tokens(a), _tokens(b)
+    if not ta or not tb:
+        return 0.0
+    return len(ta & tb) / max(1, len(ta | tb))
 
 
 def _grounded_lists(
@@ -148,20 +162,61 @@ def _fallback_improvements(lang: str) -> list[str]:
 
 
 def _build_samples(req: BreakdownRequest) -> list[dict]:
-    """Build 'better' and 'best' sample answers grounded in the question category."""
+    """Build 'better' and 'best' sample answers grounded in the question category.
+
+    Self-validation: each sample must be lexically distinct from the user's
+    answer (Jaccard overlap < 0.7) so it is *demonstrably* different. If the
+    provided sample is too close, fall back to a generic template.
+    """
     mn = req.lang == "mn"
     qtype = _classify_question(req.question) if req.question else "general"
+    user_text = req.user_answer or ""
 
-    if req.sample_answer:
+    if req.sample_answer and _lexical_overlap(req.sample_answer, user_text) < 0.7:
         better = req.sample_answer.strip()
     else:
         better = _generic_better(qtype, mn)
+        # Final guard: if even the template is too close, append a divergent clause
+        if _lexical_overlap(better, user_text) >= 0.7:
+            better = better + (
+                " Үүн дээр нэмж хэлэхэд, хэмжигдэхүйц үр дүнгээ (хувь, хугацаа, тоон үзүүлэлт) тодорхой дурдсан нь хариултыг эрс ялгаатай болгоно."
+                if mn else
+                " On top of that, naming a measurable result (percentage, timeline, count) is what makes this version meaningfully different."
+            )
 
     best = _generic_best(qtype, mn, base=better)
     return [
         {"quality": "better", "text": better},
         {"quality": "best", "text": best},
     ]
+
+
+_KEEP_FALLBACK_MN = "Хариултын ерөнхий бүтэц цэгцтэй — энэ хэвийг үргэлжлүүлэн хадгалаарай."
+_KEEP_FALLBACK_EN = "Your overall structure stays on track — keep that habit."
+
+_NOW_FALLBACK_MN = "Дараагийн хариултдаа эхний өгүүлбэрт нэг тоон үр дүн (хувь, хугацаа, хэмжээ) шууд оруулаарай."
+_NOW_FALLBACK_EN = "In your next answer, lead with one concrete number (percentage, timeline, scale) in the first sentence."
+
+_LATER_FALLBACK_MN = "Удаан хугацаанд: STAR бүтцийг 5-6 ярилцлага дасгалаар тогтмол давтаж, рефлекс болгож сурахыг хүсье."
+_LATER_FALLBACK_EN = "Longer-term: drill the STAR structure across 5–6 mock interviews until it becomes reflexive."
+
+
+def _shape_recommendations(
+    strengths: list[str], improvements: list[str], lang: str
+) -> tuple[list[str], list[str]]:
+    """Force the recommendation set to a 1-keep + 1-now + 1-later mix.
+
+    Returns (strengths, improvements) where len(strengths) == 1 and
+    len(improvements) == 2 — total of three recommendations on the page.
+    """
+    mn = lang == "mn"
+    keep = strengths[0] if strengths else (_KEEP_FALLBACK_MN if mn else _KEEP_FALLBACK_EN)
+    now = improvements[0] if improvements else (_NOW_FALLBACK_MN if mn else _NOW_FALLBACK_EN)
+    if len(improvements) >= 2:
+        later = improvements[1]
+    else:
+        later = _LATER_FALLBACK_MN if mn else _LATER_FALLBACK_EN
+    return [keep], [now, later]
 
 
 _BETTER_TEMPLATES_MN = {
@@ -246,6 +301,30 @@ async def breakdown(req: BreakdownRequest):
     if not improvements:
         improvements = _fallback_improvements(req.lang)
 
+    # Shape into exactly 3 recommendations: 1 keep + 1 immediate fix + 1 longer-term.
+    shaped_strengths, shaped_improvements = _shape_recommendations(strengths, improvements, req.lang)
+    samples = _build_samples(req)
+    source = "template"
+
+    # Optional LLM upgrade — overlay validated output on top of rule-based result.
+    # On any failure we keep the rule-based response, so the endpoint stays functional.
+    if llm_feedback.is_enabled():
+        qtype = _classify_question(req.question) if req.question else "general"
+        llm_out = llm_feedback.generate(
+            question=req.question,
+            user_answer=req.user_answer,
+            lang=req.lang,
+            qtype=qtype,
+        )
+        if llm_out is not None:
+            shaped_strengths = [llm_out["strength"]]
+            shaped_improvements = [llm_out["improvement_now"], llm_out["improvement_later"]]
+            samples = [
+                {"quality": "better", "text": llm_out["sample_better"]},
+                {"quality": "best",   "text": llm_out["sample_best"]},
+            ]
+            source = "llm"
+
     response = {
         "question":         req.question,
         "user_answer":      req.user_answer,
@@ -253,9 +332,10 @@ async def breakdown(req: BreakdownRequest):
         "duration_seconds": req.duration_seconds,
         "was_voice":        req.was_voice,
         "scores":           scores,
-        "strengths":        strengths[:3],
-        "improvements":     improvements[:3],
-        "sample_answers":   _build_samples(req),
+        "strengths":        shaped_strengths,
+        "improvements":     shaped_improvements,
+        "sample_answers":   samples,
+        "source":           source,
     }
     _cache[key] = response
     return response

@@ -77,7 +77,7 @@ function QuestionBreakdown({
       .catch((e) => {
         if (!alive) return;
         console.error('breakdown failed:', e);
-        setError(lang === 'mn' ? 'Дэлгэрэнгүй мэдээллийг авч чадсангүй.' : 'Could not load the breakdown.');
+        setError(lang === 'mn' ? 'Дэлгэрэнгүйг ачаалж чадсангүй.' : 'Could not load the breakdown.');
       })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -152,7 +152,7 @@ function QuestionBreakdown({
 
             {/* 4. Strengths */}
             <section className="qb-sec">
-              <div className="label">{lang === 'mn' ? 'Сайн хийсэн зүйлс' : 'What went well'}</div>
+              <div className="label">{lang === 'mn' ? 'Сайн хийсэн зүйл' : 'What went well'}</div>
               <ul className="qb-bullets">
                 {data.strengths.map((s, i) => (
                   <li key={i} className="qb-bullet">
@@ -182,7 +182,14 @@ function QuestionBreakdown({
 
             {/* 6. Sample answers */}
             <section className="qb-sec">
-              <div className="label">{lang === 'mn' ? 'Жишээ хариулт' : 'Sample answers'}</div>
+              <div className="label">
+                {lang === 'mn' ? 'Жишээ хариулт' : 'Sample answers'}
+                <span className="qb-source-badge">
+                  {data.source === 'llm'
+                    ? (lang === 'mn' ? 'AI' : 'AI')
+                    : (lang === 'mn' ? 'Загвар' : 'Template')}
+                </span>
+              </div>
               <div className="qb-samples">
                 {data.sample_answers.map((sa, i) => (
                   <div key={i} className="qb-sample">
@@ -200,7 +207,7 @@ function QuestionBreakdown({
             {/* Practice again */}
             <button type="button" className="qb-practice-btn" onClick={() => onPracticeAgain?.(questionIndex)}>
               <RotateCcw size={14} strokeWidth={1.5} />
-              {lang === 'mn' ? 'Энэ асуултыг дахин хариулах' : 'Practice this question again'}
+              {lang === 'mn' ? 'Энэ асуултыг дахин хариулъя' : 'Practice this question again'}
             </button>
           </>
         )}

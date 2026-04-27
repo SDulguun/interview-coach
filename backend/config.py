@@ -1,7 +1,18 @@
 """Configuration constants for the Interview Coach backend."""
 import os
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+except ImportError:
+    pass
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# LLM (optional) — when ANTHROPIC_API_KEY is set, breakdown samples and
+# improvements come from Claude. Otherwise the rule-based templates are used.
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6").strip()
 DATA_DIR = os.path.join(BASE_DIR, "data", "processed")
 MN_QA_DIR = os.path.join(DATA_DIR, "mn")
 JOB_LISTINGS_CSV = os.path.join(DATA_DIR, "job_listings_processed.csv")
