@@ -119,158 +119,71 @@ function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-const ACK_POOLS = {
-  short: {
-    mn: ['Ойлголоо, баярлалаа.', 'За, ойлголоо. Үргэлжлүүлье.', 'Баярлалаа. Цааш үргэлжлүүлье.'],
-    en: ['Got it, thank you.', 'Alright, thanks — let\'s move on.', 'Thank you. Let\'s continue.'],
-  },
-  detailed_data: {
-    mn: [
-      'Тоон үзүүлэлтээ дурдсанд баярлалаа — ингэснээр таны гаргасан үр дүн маш тодорхой харагдаж байна.',
-      'Нарийвчилсан мэдээлэл их тустай байлаа. Ийм нотолгоо ярилцлагыг үнэмшилтэй болгодог.',
-    ],
-    en: [
-      'Thank you for the specific numbers — it really helps to see the concrete impact of your work.',
-      'Appreciate the detailed breakdown, that kind of evidence makes your answer very convincing.',
-    ],
-  },
-  teamwork: {
-    mn: [
-      'Багийн ажлын жишээ тань сайн байлаа — бусадтай хэрхэн хамтардаг нь тодорхой харагдлаа.',
-      'Хамтын ажиллагааны энэ жишээ их сонирхолтой байв, баярлалаа.',
-    ],
-    en: [
-      'That\'s a solid teamwork example — I can see how you collaborate with others.',
-      'Really interesting example of working together, thank you for sharing that.',
-    ],
-  },
-  leadership: {
-    mn: ['Удирдлагын туршлагаа маш сайн тайлбарлалаа. Шийдвэр гаргах арга барил тань тодорхой байна.'],
-    en: ['Good insight into your leadership — your decision-making approach comes through clearly.'],
-  },
-  challenge: {
-    mn: ['Бэрхшээлтэй нөхцөлд хэрхэн зохицсоноо сайн тайлбарлалаа. Энэ туршлага үнэтэй.'],
-    en: ['Good explanation of how you handled that challenge — that kind of experience is valuable.'],
-  },
-  achievement: {
-    mn: ['Гаргасан үр дүнгээ сайн дүрсэллээ. Бодит жишээ нотолгоо болдог.'],
-    en: ['Well explained results — concrete examples really strengthen an answer.'],
-  },
-  learning: {
-    mn: ['Суралцах хандлага тань сайн харагдлаа. Шинэ зүйл авахад бэлэн байдаг нь чухал чанар.'],
-    en: ['Your learning mindset comes through clearly — being open to new things is a valuable quality.'],
-  },
-  dontknow: {
-    mn: [
-      'Үүнийг шууд хэлсэнд баярлалаа — үгүй хариулах нь ч үнэнч зан. Дараагийн асуултад шилжье.',
-      'Зүгээр ээ, бүгдийг мэдэх албагүй. Цааш үргэлжлүүлье.',
-      'Үнэнч хариулсанд баярлалаа. Дараагийн асуулт руу шилжье.',
-    ],
-    en: [
-      'Appreciate the honest answer — it\'s okay not to know everything. Let\'s move to the next question.',
-      'No worries, thank you for being upfront. We\'ll continue.',
-      'That\'s fine, honesty matters. Let\'s try the next one.',
-    ],
-  },
-  too_short: {
-    mn: [
-      'Ойлголоо. Дараагийн асуултуудад бага зэрэг дэлгэрэнгүй хариулаарай — жишээ нэмвэл илүү тодорхой болно.',
-      'Баярлалаа. Дараа нь өөрийн туршлагаас жижиг жишээ дурдвал хариулт тань илүү бодит сонсогддог.',
-    ],
-    en: [
-      'Got it. For the next ones, a bit more detail — a quick example would make your answer stronger.',
-      'Thanks. Try adding a small example from your experience next time, it makes answers more tangible.',
-    ],
-  },
-  substantive: {
-    mn: [
-      'Маш сайн хариулт байлаа, нарийвчилсан тайлбар тань их тус болсон. Баярлалаа.',
-      'Энэ хариултад их баярлалаа — нөхцөл, үйлдэл, үр дүнг сайн холбож тайлбарласан.',
-      'Маш бүтэцтэй, тодорхой хариулт байв. Танд баярлалаа.',
-    ],
-    en: [
-      'Really solid answer — I appreciate how thorough your explanation was, thank you.',
-      'Thank you, you tied the situation, actions, and outcome together really well.',
-      'Very structured and clear — thanks for walking me through it.',
-    ],
-  },
+// Short transition pool — what a real interviewer says between questions.
+// Brief, neutral-warm, no evaluation. The user gets feedback on the results
+// screen, not in the moment. Keep each entry to 5-6 words max.
+const SHORT_TRANSITIONS = {
+  mn: [
+    'За.',
+    'Аан за.',
+    'За ойлголоо.',
+    'Тэгье.',
+    'Бэлэн үү?',
+    'Зүгээр.',
+    'Тийм ээ.',
+    'Ойлголоо.',
+    'За тэгвэл.',
+    'За ингээд.',
+    'Дараагийнх руу шилжье.',
+    'Дараагийн асуулт.',
+    'Үргэлжлүүлье.',
+    'За цааш нь.',
+    'Тэгье, дараагийнх.',
+    'За, дараагийн асуулт.',
+    'Аан тийм.',
+    'За за.',
+  ],
+  en: [
+    'Okay.',
+    'Got it.',
+    'Alright.',
+    'Mm-hm.',
+    'Right.',
+    'Sure.',
+    'Understood.',
+    'Next one.',
+    'Let\'s continue.',
+    'Moving on.',
+    'Next question.',
+    'Okay, next.',
+    'Alright then.',
+    'Got it, thanks.',
+    'Sounds good.',
+  ],
 };
 
-const CATEGORY_ACKS = {
-  introduction: {
-    mn: ['Баярлалаа, танилцуулга маш тодорхой байна.', 'Танилцсандаа баяртай байна.'],
-    en: ['Thank you for that clear introduction.', 'Appreciate the introduction.'],
-  },
-  motivation_role: {
-    mn: ['Сэдлээ сайн тайлбарлалаа.'],
-    en: ['Your motivation is clear, thank you.'],
-  },
-  motivation_company: {
-    mn: ['Бидний талаар судалсан нь сайн байна.'],
-    en: ['Good to see you\'ve researched the company.'],
-  },
-  experience: {
-    mn: ['Туршлагаа сайн тайлбарлалаа.'],
-    en: ['Good overview of your experience.'],
-  },
-  behavioral_challenge: {
-    mn: ['Бэрхшээлийг хэрхэн даван туулсныг сайн тайлбарлалаа.'],
-    en: ['Good description of how you handled that.'],
-  },
-  behavioral_teamwork: {
-    mn: ['Багийн ажлын жишээ маш сайн байна.'],
-    en: ['That\'s a good teamwork example.'],
-  },
-  technical: {
-    mn: ['Мэргэжлийн мэдлэгээ сайн тайлбарлалаа.'],
-    en: ['Good explanation of your technical knowledge.'],
-  },
-  technical_2: {
-    mn: ['Дэвшилтэт мэдлэгээ сайн харууллаа.'],
-    en: ['Good demonstration of advanced knowledge.'],
-  },
-  strengths: {
-    mn: ['Давуу талуудаа сайн тодорхойллоо.'],
-    en: ['Well articulated strengths.'],
-  },
-  weaknesses: {
-    mn: ['Шударга хандлага тань сайн байна.'],
-    en: ['Appreciate your honesty.'],
-  },
-  problem_solving: {
-    mn: ['Асуудал шийдвэрлэх арга барил тань тодорхой байна.'],
-    en: ['Your problem-solving approach is clear.'],
-  },
-  goals: {
-    mn: ['Зорилгоо тодорхой хэллээ.'],
-    en: ['Clear goals, thank you.'],
-  },
-  closing: {
-    mn: ['Сайн асуулт байна.'],
-    en: ['Good question.'],
-  },
+const DONT_KNOW_TRANSITIONS = {
+  mn: ['Зүгээр.', 'Зүгээр, цааш нь.', 'Ойлголоо. Дараагийнх.', 'Зүгээр шүү.'],
+  en: ['No worries.', 'That\'s fine.', 'No problem, next.', 'Alright.'],
 };
 
-const GENERIC_ACKS = {
-  mn: ['Баярлалаа, сайн хариулт байна.', 'Ойлголоо, баярлалаа.', 'Маш сайн, баярлалаа.', 'Тодорхой байна, баярлалаа.'],
-  en: ['Thank you, that\'s helpful.', 'Understood, thank you.', 'Good answer, thanks.', 'That\'s clear, thank you.'],
-};
+let _lastTransition = '';
 
-const PHASE_BRIDGES = {
-  'opening→middle': {
-    mn: ['Одоо таны мэргэжлийн туршлага, ур чадварын талаар ярилцъя.', 'Одоо үндсэн асуултууд руу шилжье.'],
-    en: ['Let\'s move on to discuss your experience and skills.', 'Now let\'s get into the main questions.'],
-  },
-  'middle→ending': {
-    mn: ['Маш сайн. Ярилцлагаа дуусгахын өмнө хэдэн зүйл ярилцъя.', 'Баярлалаа. Бараг дуусаж байна.'],
-    en: ['Excellent. Before we wrap up, a few more things.', 'Thank you. We\'re almost done.'],
-  },
-};
-
-const CONTINUATION_BRIDGES = {
-  mn: ['Дараагийн асуулт руу шилжье.', 'Үргэлжлүүлье.', '', ''],
-  en: ['Let\'s move to the next question.', 'Let\'s continue.', '', ''],
-};
+function pickShortTransition(lang, isDontKnow = false) {
+  const pool = isDontKnow
+    ? (DONT_KNOW_TRANSITIONS[lang] || DONT_KNOW_TRANSITIONS.mn)
+    : (SHORT_TRANSITIONS[lang] || SHORT_TRANSITIONS.mn);
+  if (pool.length <= 1) return pool[0] || '';
+  let pick = pool[Math.floor(Math.random() * pool.length)];
+  // Avoid back-to-back repeats
+  let guard = 0;
+  while (pick === _lastTransition && guard < 5) {
+    pick = pool[Math.floor(Math.random() * pool.length)];
+    guard += 1;
+  }
+  _lastTransition = pick;
+  return pick;
+}
 
 const DONT_KNOW_PATTERNS = /^(\s*)(мэдэхгүй|мэдэхгүй\s*байна|хариулж\s*чадахгүй|санахгүй\s*байна|эргэлз|хэлж\s*мэдэхгүй|i\s*don'?t\s*know|idk|dunno|no\s*idea|not\s*sure|pass|skip|n\/?a)(\s*[.!?]*)?\s*$/i;
 
@@ -285,45 +198,11 @@ function classifyAnswer(answerText) {
   return 'normal';
 }
 
-function pickAcknowledgment(answerText, questionCategory, lang) {
-  const kind = classifyAnswer(answerText);
-  if (kind === 'dontknow' || kind === 'empty') return pickRandom(ACK_POOLS.dontknow[lang] || ACK_POOLS.dontknow.mn);
-  if (kind === 'dontknow_like') return pickRandom(ACK_POOLS.too_short[lang] || ACK_POOLS.too_short.mn);
-  if (kind === 'too_short') return pickRandom(ACK_POOLS.too_short[lang] || ACK_POOLS.too_short.mn);
-
-  const lower = answerText.toLowerCase();
-  const wc = answerText.split(/\s+/).length;
-
-  if (/\d+/.test(answerText) && wc > 40) return pickRandom(ACK_POOLS.detailed_data[lang] || ACK_POOLS.detailed_data.mn);
-  if (/баг|хамт|хамтар|team|collaborat|together/i.test(lower)) return pickRandom(ACK_POOLS.teamwork[lang] || ACK_POOLS.teamwork.mn);
-  if (/удирд|манлайл|lead|manag|direct/i.test(lower)) return pickRandom(ACK_POOLS.leadership[lang] || ACK_POOLS.leadership.mn);
-  if (/хүнд|бэрхшээл|асуудал|challeng|difficult|problem/i.test(lower)) return pickRandom(ACK_POOLS.challenge[lang] || ACK_POOLS.challenge.mn);
-  if (/амжилт|хийсэн|бүтээсэн|achiev|accomplish|built|creat/i.test(lower)) return pickRandom(ACK_POOLS.achievement[lang] || ACK_POOLS.achievement.mn);
-  if (/сурал|сурсан|learn|stud/i.test(lower)) return pickRandom(ACK_POOLS.learning[lang] || ACK_POOLS.learning.mn);
-  if (kind === 'substantive') return pickRandom(ACK_POOLS.substantive[lang] || ACK_POOLS.substantive.mn);
-
-  const catPool = CATEGORY_ACKS[questionCategory];
-  if (catPool) return pickRandom(catPool[lang] || catPool.mn);
-  return pickRandom(GENERIC_ACKS[lang] || GENERIC_ACKS.mn);
-}
-
-function pickBridge(currentCategory, nextQuestion, lang) {
-  if (!nextQuestion) return '';
-  const currentPhase = getQuestionPhase(currentCategory);
-  const nextPhase = getQuestionPhase(nextQuestion.category);
-  if (currentPhase !== nextPhase) {
-    const key = `${currentPhase}→${nextPhase}`;
-    const pool = PHASE_BRIDGES[key];
-    if (pool) return pickRandom(pool[lang] || pool.mn);
-  }
-  return pickRandom(CONTINUATION_BRIDGES[lang] || CONTINUATION_BRIDGES.mn);
-}
-
 /* Hard-mode probing — occasionally pushes for more depth */
 const HARD_PROBES = {
   mn: [
     'Тодорхой тоо, хэмжигдэхүүн дурдаж чадах уу?',
-    'Яг ямар trade-off шийдвэр гаргасан бэ?',
+    'Юуг юуны төлөө орхих шийдвэр гаргасан бэ?',
     'Энэ туршлагаас юу суралцсан бэ?',
     'Бусдад ямар нөлөө үзүүлсэн бэ?',
   ],
@@ -338,6 +217,7 @@ const HARD_PROBES = {
 function generateInterviewerReaction(answerText, questionCategory, nextQuestion, isLastQuestion, lang, diff) {
   const answerKind = classifyAnswer(answerText);
 
+  // Final question gets the warm closing — that's a goodbye, not a transition.
   if (isLastQuestion) {
     if (questionCategory === 'closing' && looksLikeQuestion(answerText)) {
       return generateClosingResponse(answerText, lang);
@@ -347,27 +227,16 @@ function generateInterviewerReaction(answerText, questionCategory, nextQuestion,
       : 'Thank you so much for taking the time today — we really enjoyed the conversation and will be in touch soon. Best of luck!';
   }
 
-  const ack = pickAcknowledgment(answerText, questionCategory, lang);
+  const isDontKnow = answerKind === 'dontknow' || answerKind === 'empty' || answerKind === 'dontknow_like';
+  const transition = pickShortTransition(lang, isDontKnow);
 
-  // For don't-know or empty answers: skip bridges and probes — just move on warmly
-  if (answerKind === 'dontknow' || answerKind === 'empty' || answerKind === 'dontknow_like') {
-    return ack;
-  }
-
-  const bridge = pickBridge(questionCategory, nextQuestion, lang);
-
-  // Hard mode: ~30% chance of a follow-up probe, but NOT on short / weak answers
-  if (diff === 'hard' && answerKind !== 'too_short' && Math.random() < 0.3) {
+  // Hard mode: ~25% chance of a follow-up probe — still kept short.
+  if (diff === 'hard' && !isDontKnow && answerKind !== 'too_short' && Math.random() < 0.25) {
     const probe = pickRandom(HARD_PROBES[lang] || HARD_PROBES.mn);
-    return [ack, probe, bridge].filter(Boolean).join(' ');
+    return `${transition} ${probe}`;
   }
 
-  // Easy mode: shorter, friendlier — often skip bridge
-  if (diff === 'easy' && Math.random() < 0.4) {
-    return ack;
-  }
-
-  return [ack, bridge].filter(Boolean).join(' ');
+  return transition;
 }
 
 /* ============================================================
@@ -550,12 +419,12 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
     setResponseTypingDone(false);
     setInterviewerThinking(true);
 
-    // Thinking pause scales with user's answer length:
-    // short/skip → ~700ms, normal → ~1.3s, long substantive → up to ~3s
-    const thinkBase = 700;
-    const thinkPerWord = 25;
-    const thinkCap = 3200;
-    const thinkMs = Math.min(thinkBase + answerWordCount * thinkPerWord, thinkCap);
+    // Brief beat before the transition appears. Short responses (the new
+    // 5-6 word transitions) get a quick pause; the goodbye gets a longer one.
+    const respWords = (responseMessage || '').split(/\s+/).filter(Boolean).length;
+    const thinkMs = respWords <= 8
+      ? 350
+      : Math.min(700 + answerWordCount * 20, 2500);
 
     let typingInterval = null;
     const thinkTimer = setTimeout(() => {
@@ -578,11 +447,12 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
   }, [phase, responseMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // After response typing is done → advance to next question (unless last)
-  // Pause scales slightly with response length so user can read longer replies.
+  // Short transitions stay on screen ~1.3s before the next question fades in.
+  // Longer responses (the final-question goodbye) get a longer beat to read.
   useEffect(() => {
     if (phase !== 'responding' || !responseTypingDone || isLastAnswer) return;
     const respWc = (responseMessage || '').split(/\s+/).filter(Boolean).length;
-    const postPause = Math.min(2200 + respWc * 40, 4000);
+    const postPause = respWc <= 8 ? 1300 : Math.min(2000 + respWc * 30, 3500);
     const timer = setTimeout(() => {
       setPhase('questioning');
       setQuestionTime(Date.now());
@@ -750,7 +620,7 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
         setRecording(false);
         stream.getTracks().forEach((tr) => tr.stop());
         streamRef.current = null;
-        setAudioError(lang === 'mn' ? 'Бичлэг алдаатай болсон.' : 'Recording failed.');
+        setAudioError(lang === 'mn' ? 'Бичлэг хийгдсэнгүй.' : 'Recording failed.');
         setTimeout(() => setAudioError(''), 5000);
       };
 
@@ -777,7 +647,7 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
         restartCountRef.current = 0;
 
         if (blob.size < 100) {
-          setAudioError(lang === 'mn' ? 'Дуу бичигдээгүй. Микрофоноо шалгана уу.' : 'No audio captured. Check your mic.');
+          setAudioError(lang === 'mn' ? 'Дуу бичигдсэнгүй. Микрофоноо шалгаарай.' : 'No audio captured. Check your mic.');
           setTimeout(() => setAudioError(''), 5000);
           return;
         }
@@ -805,7 +675,7 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
       setRecording(true);
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setAudioError(lang === 'mn' ? 'Микрофон зөвшөөрөгдөөгүй.' : 'Microphone access denied.');
+        setAudioError(lang === 'mn' ? 'Микрофоны зөвшөөрөл алга.' : 'Microphone access denied.');
       } else if (err.name === 'NotFoundError') {
         setAudioError(lang === 'mn' ? 'Микрофон олдсонгүй.' : 'No microphone found.');
       } else {
@@ -894,7 +764,7 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
                 </div>
                 <div className="pre-interview-phase">
                   <span className="phase-dot phase-dot-ending" />
-                  <span>{lang === 'mn' ? 'Хаалт — зорилго, Таны асуултууд' : 'Closing — goals, your questions'}</span>
+                  <span>{lang === 'mn' ? 'Хаалт — зорилго, Таньд тавигдсан асуултууд' : 'Closing — goals, your questions'}</span>
                 </div>
               </div>
             </div>

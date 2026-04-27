@@ -491,9 +491,9 @@
 .ws-response-avatar svg { stroke-width: 1.5; }
 .ws-response-text {
   flex: 1;
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--text-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-subtle);
   padding-top: 4px;
 }
 .ws-thinking-dots {
