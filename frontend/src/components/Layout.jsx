@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useLang } from '../lang';
+import { useTheme } from '../theme';
 const PHASE_HINTS = {
-  setup: { mn: 'Ажлын байр, түвшин сонгоод бэлтгэл хийнэ', en: 'Choose a role and difficulty to begin' },
-  interview: { mn: 'Асуултуудад тодорхой, жишээтэй хариулаарай', en: 'Answer clearly with examples' },
-  results: { mn: 'Үр дүнгээ хянаж, давуу ба сул талуудаа олоорой', en: 'Review your strengths and areas to improve' },
-  history: { mn: 'Өмнөх ярилцлагуудын түүх', en: 'Past interview sessions' },
-  guides: { mn: 'Ярилцлагын бэлтгэлийн заавар', en: 'Interview preparation guides' },
+  setup: { mn: 'Ажлын байр, түвшнээ сонгоод эхэлье', en: 'Choose a role and difficulty to begin' },
+  interview: { mn: 'Асуулт болгонд жишээтэй, тодорхой хариулаарай', en: 'Answer clearly with examples' },
+  results: { mn: 'Үр дүнгээ үзээд давуу, сул талаа олж аваарай', en: 'Review your strengths and areas to improve' },
+  history: { mn: 'Өмнөх ярилцлагууд тань энд', en: 'Past interview sessions' },
+  guides: { mn: 'Бэлтгэлд туслах зөвлөмжүүд', en: 'Interview preparation guides' },
 };
 
 function Layout({ children, phase, onNavigate, onLogout, currentUser, onOpenCmd }) {
   const { lang, t, toggleLang } = useLang();
+  const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
@@ -117,10 +119,31 @@ function Layout({ children, phase, onNavigate, onLogout, currentUser, onOpenCmd 
               </button>
             </div>
           )}
-          <button className="lang-toggle" onClick={toggleLang}>
-            <span className="lang-badge">{lang.toUpperCase()}</span>
-            {lang === 'mn' ? 'English' : 'Монгол'}
-          </button>
+          <div className="sidebar-toggles">
+            <button
+              className="theme-toggle"
+              onClick={toggleTheme}
+              title={theme === 'dark'
+                ? (lang === 'mn' ? 'Гэрэл горим руу шилжих' : 'Switch to light theme')
+                : (lang === 'mn' ? 'Харанхуй горим руу шилжих' : 'Switch to dark theme')}
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )}
+            </button>
+            <button className="lang-toggle" onClick={toggleLang}>
+              <span className="lang-badge">{lang.toUpperCase()}</span>
+              {lang === 'mn' ? 'English' : 'Монгол'}
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -144,8 +167,7 @@ function Layout({ children, phase, onNavigate, onLogout, currentUser, onOpenCmd 
                 <circle cx="11" cy="11" r="7" />
                 <path d="m20 20-3-3" />
               </svg>
-              <span>{lang === 'mn' ? 'Команд хайх' : 'Search commands'}</span>
-              <span className="kbd">⌘K</span>
+              <span>{lang === 'mn' ? 'Хайх' : 'Search commands'}</span>
             </button>
           )}
         </header>

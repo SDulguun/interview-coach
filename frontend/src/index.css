@@ -24,6 +24,12 @@
   --text-subtle: #8a8899;
   --text-faint: #6b6a7a;
 
+  /* Mongolian atmosphere — Tengri sky + steppe gold */
+  --tengri-300: #60a5fa;
+  --tengri-400: #3b82f6;
+  --tengri-500: #1e40af;
+  --gold-500:   #d4a574;
+
   /* Semantic */
   --green: #5dcaa5;
   --green-dark: #1d9e75;
@@ -39,6 +45,14 @@
   --border-accent: rgba(139, 92, 246, 0.2);
   --border-accent-hover: rgba(139, 92, 246, 0.35);
 
+  /* Surface depth — flat in dark mode, soft shadow in light mode */
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-topbar: none;
+
+  /* Selected/active fill — used for nav items, pill-active, etc. */
+  --selected-fill: rgba(124, 58, 237, 0.12);
+
   /* Radius */
   --r-sm: 8px;
   --r-md: 10px;
@@ -48,6 +62,76 @@
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+
+/* Light theme — clean modern, near-white surfaces with indigo accent.
+   Inspired by Linear / Vercel / Stripe dashboards: white cards on a
+   subtly cool off-white canvas, hairline neutral borders, gentle shadows
+   for depth, and a single saturated indigo for primary actions.
+   Activated by data-theme="light" on <html>. */
+[data-theme="light"] {
+  /* Surfaces — neutral near-white ramp (no purple tint) */
+  --ink-950: #f4f4f6;  /* sidebar — slightly darker than canvas */
+  --ink-900: #fafafb;  /* page background — near-white, faint cool tint */
+  --ink-850: #ffffff;  /* topbar / sticky headers — pure white */
+  --ink-800: #ffffff;  /* card surfaces — pure white */
+  --ink-700: #f3f4f6;  /* hover / pressed surfaces */
+  --ink-600: #e5e7eb;  /* divider/border tone (Tailwind gray-200) */
+
+  /* Accent — Tailwind indigo-600 ramp; saturated, modern */
+  --iris-300: #6366f1;  /* indigo-500 — used for accent text */
+  --iris-400: #4f46e5;  /* indigo-600 — primary brand */
+  --iris-500: #4f46e5;  /* indigo-600 — primary buttons */
+  --iris-600: #4338ca;  /* indigo-700 — hover (~10% darker) */
+  --iris-700: #3730a3;  /* indigo-800 — pressed */
+  --iris-900: #eef2ff;  /* indigo-50 — faint tinted fill */
+
+  /* Text — Tailwind neutral ramp, strong contrast */
+  --text-primary: #111827;  /* gray-900 */
+  --text-body: #1f2937;     /* gray-800 */
+  --text-muted: #374151;    /* gray-700 */
+  --text-subtle: #6b7280;   /* gray-500 */
+  --text-faint: #9ca3af;    /* gray-400 */
+
+  /* Mongolian atmosphere — darker for legibility on white */
+  --tengri-300: #2563eb;
+  --tengri-400: #1d4ed8;
+  --tengri-500: #1e3a8a;
+  --gold-500:   #b8895a;
+
+  /* Semantic — slightly darker for AA contrast on white */
+  --green: #059669;
+  --green-dark: #047857;
+  --amber: #d97706;
+  --amber-dark: #b45309;
+  --red: #dc2626;
+  --red-dark: #b91c1c;
+  --pink: #db2777;
+
+  /* Borders — neutral grey hairlines (NOT iris-tinted, that read as muddy) */
+  --border-divider: #e5e7eb;       /* gray-200 — divider lines */
+  --border-card: #e5e7eb;          /* gray-200 — card hairline */
+  --border-accent: #c7d2fe;        /* indigo-200 — accent border */
+  --border-accent-hover: #4f46e5;  /* indigo-600 — selected/active border */
+
+  /* Card depth — hairline border + soft shadow stacks for clear hierarchy */
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 4px 8px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-topbar: 0 1px 0 rgba(15, 23, 42, 0.04);
+
+  /* Selected fill — indigo-50 wash for active nav, pill-active, etc. */
+  --selected-fill: #eef2ff;
+}
+
+[data-theme="light"] ::selection {
+  background: rgba(79, 70, 229, 0.18);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border: 2px solid #fafafb;
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
 html { scroll-behavior: smooth; }
 
@@ -61,8 +145,8 @@ body {
   font-family: var(--font-body);
   background: var(--ink-900);
   color: var(--text-body);
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: 15px;
+  line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

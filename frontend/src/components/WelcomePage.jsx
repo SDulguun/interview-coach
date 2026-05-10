@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLang } from '../lang';
+import { useTheme } from '../theme';
 import { MessageSquare, TrendingUp, CheckCircle, ArrowRight, Play } from 'lucide-react';
 import { Button, Kbd, GlowBackground, PageTransition } from './ui';
 import DemoModal from './DemoModal';
@@ -7,6 +8,7 @@ import './welcome-page.css';
 
 function WelcomePage({ onStart, onOpenPalette }) {
   const { t, lang, toggleLang } = useLang();
+  const { theme, toggleTheme } = useTheme();
   const [demoOpen, setDemoOpen] = useState(false);
 
   const features = [
@@ -19,7 +21,7 @@ function WelcomePage({ onStart, onOpenPalette }) {
     },
     {
       Icon: TrendingUp,
-      title: lang === 'mn' ? 'Хариулт Тань Дээр Тулгуурласан Үнэлгээ' : 'Detailed Feedback',
+      title: lang === 'mn' ? 'Хариултан Дээр Тулгуурласан Үнэлгээ' : 'Detailed Feedback',
       body: lang === 'mn'
         ? 'Юу амжилттай хэлсэн, юу сайжруулахаа хариулт бүрээс мэдэж аваарай.'
         : 'Structure, content, and relevance analysis with clear improvement tips for every answer.',
@@ -58,6 +60,25 @@ function WelcomePage({ onStart, onOpenPalette }) {
               >
                 <Kbd>⌘K</Kbd>
               </button>
+              <button
+                className="landing-lang-btn"
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                title={theme === 'dark'
+                  ? (lang === 'mn' ? 'Гэрэл горим' : 'Light theme')
+                  : (lang === 'mn' ? 'Харанхуй горим' : 'Dark theme')}
+              >
+                {theme === 'dark' ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                )}
+              </button>
               <button className="landing-lang-btn" onClick={toggleLang}>
                 {lang === 'mn' ? 'EN' : 'MN'}
               </button>
@@ -66,7 +87,15 @@ function WelcomePage({ onStart, onOpenPalette }) {
         </header>
 
         <section className="landing-hero">
-          {lang === 'mn' ? (
+          {theme === 'light' ? (
+            <>
+              {/* Vibrant indigo → pink → amber wash on white. Larger blobs at
+                  lower opacity so the whole hero feels lit, not spotted. */}
+              <GlowBackground color="#6366f1" size={520} opacity={0.28} top={-120} left="18%" />
+              <GlowBackground color="#ec4899" size={420} opacity={0.22} top={20} right="10%" />
+              <GlowBackground color="#f59e0b" size={360} opacity={0.18} bottom={-80} left="35%" />
+            </>
+          ) : lang === 'mn' ? (
             <>
               <GlowBackground color="#3b82f6" size={340} opacity={0.32} top={-60} left="28%" />
               <GlowBackground color="#d4a574" size={240} opacity={0.22} bottom={-40} right="10%" />
@@ -80,7 +109,7 @@ function WelcomePage({ onStart, onOpenPalette }) {
 
           <div className="landing-hero-tag float-y">
             <span className="tag-dot" />
-            {lang === 'mn' ? 'Шинэ — Уран яриагаа уулзалтад бэлдэе' : 'New — speaking practice'}
+            {lang === 'mn' ? 'Уран яриагаа уулзалтад бэлдэе' : 'New — speaking practice'}
           </div>
 
           <h1 className="landing-hero-title">
