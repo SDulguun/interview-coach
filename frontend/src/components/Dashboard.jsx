@@ -192,7 +192,7 @@ function Dashboard({
             <div className="label" style={{ marginBottom: 8 }}>
               {lang === 'mn' ? 'Алхам 1' : 'Step 1'}
             </div>
-            <h2>{lang === 'mn' ? 'Таныг юу гэж дуудах вэ?' : 'What should we call you?'}</h2>
+            <h2>{lang === 'mn' ? 'Та өөрийн нэрийг оруулна уу' : 'What should we call you?'}</h2>
             <p className="subtle" style={{ margin: '6px 0 22px' }}>
               {lang === 'mn'
                 ? 'Нэрээ бичээрэй — ярилцлагын явцад Таныг нэрээр нь дуудна.'

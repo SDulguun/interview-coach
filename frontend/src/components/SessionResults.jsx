@@ -359,7 +359,7 @@ function SessionResults({ results, answers, questions = [], totalQuestions, onRe
             )}
           </ol>
           <Button onClick={onRestart} style={{ width: '100%', marginTop: 'auto' }}>
-            {lang === 'mn' ? 'Дахин Дасгал Хий' : 'Practice Again'}
+            {lang === 'mn' ? 'Дахин дасгал хийе' : 'Practice Again'}
             <ArrowRight size={14} strokeWidth={1.5} />
           </Button>
         </div>
