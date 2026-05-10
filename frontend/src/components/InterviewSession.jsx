@@ -3,7 +3,7 @@ import {
   User, Clock, MessageSquare, BarChart3, Send, Mic, Square,
   Pencil, FileText, Lightbulb, ArrowRight, AlertTriangle, Check, X,
 } from 'lucide-react';
-import { transcribeAudio, generateTTS } from '../api';
+import { transcribeAudio, generateTTS, generateReaction } from '../api';
 import { useLang } from '../lang';
 import { classifyQuestion, formatTime, getQuestionPhase } from '../utils';
 import './interview-session.css';
@@ -112,79 +112,8 @@ function getCompanyContext(jobTitle, lang) {
 }
 
 /* ============================================================
-   ANSWER-AWARE RESPONSE GENERATOR
+   ANSWER CLASSIFICATION
    ============================================================ */
-function pickRandom(arr) {
-  if (!arr || arr.length === 0) return '';
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-// Short transition pool — what a real interviewer says between questions.
-// Brief, neutral-warm, no evaluation. The user gets feedback on the results
-// screen, not in the moment. Keep each entry to 5-6 words max.
-const SHORT_TRANSITIONS = {
-  mn: [
-    'За.',
-    'Аан за.',
-    'За ойлголоо.',
-    'Тэгье.',
-    'Бэлэн үү?',
-    'Зүгээр.',
-    'Тийм ээ.',
-    'Ойлголоо.',
-    'За тэгвэл.',
-    'За ингээд.',
-    'Дараагийнх руу шилжье.',
-    'Дараагийн асуулт.',
-    'Үргэлжлүүлье.',
-    'За цааш нь.',
-    'Тэгье, дараагийнх.',
-    'За, дараагийн асуулт.',
-    'Аан тийм.',
-    'За за.',
-  ],
-  en: [
-    'Okay.',
-    'Got it.',
-    'Alright.',
-    'Mm-hm.',
-    'Right.',
-    'Sure.',
-    'Understood.',
-    'Next one.',
-    'Let\'s continue.',
-    'Moving on.',
-    'Next question.',
-    'Okay, next.',
-    'Alright then.',
-    'Got it, thanks.',
-    'Sounds good.',
-  ],
-};
-
-const DONT_KNOW_TRANSITIONS = {
-  mn: ['Зүгээр.', 'Зүгээр, цааш нь.', 'Ойлголоо. Дараагийнх.', 'Зүгээр шүү.'],
-  en: ['No worries.', 'That\'s fine.', 'No problem, next.', 'Alright.'],
-};
-
-let _lastTransition = '';
-
-function pickShortTransition(lang, isDontKnow = false) {
-  const pool = isDontKnow
-    ? (DONT_KNOW_TRANSITIONS[lang] || DONT_KNOW_TRANSITIONS.mn)
-    : (SHORT_TRANSITIONS[lang] || SHORT_TRANSITIONS.mn);
-  if (pool.length <= 1) return pool[0] || '';
-  let pick = pool[Math.floor(Math.random() * pool.length)];
-  // Avoid back-to-back repeats
-  let guard = 0;
-  while (pick === _lastTransition && guard < 5) {
-    pick = pool[Math.floor(Math.random() * pool.length)];
-    guard += 1;
-  }
-  _lastTransition = pick;
-  return pick;
-}
-
 const DONT_KNOW_PATTERNS = /^(\s*)(мэдэхгүй|мэдэхгүй\s*байна|хариулж\s*чадахгүй|санахгүй\s*байна|эргэлз|хэлж\s*мэдэхгүй|i\s*don'?t\s*know|idk|dunno|no\s*idea|not\s*sure|pass|skip|n\/?a)(\s*[.!?]*)?\s*$/i;
 
 function classifyAnswer(answerText) {
@@ -198,45 +127,93 @@ function classifyAnswer(answerText) {
   return 'normal';
 }
 
-/* Hard-mode probing — occasionally pushes for more depth */
-const HARD_PROBES = {
-  mn: [
-    'Тодорхой тоо, хэмжигдэхүүн дурдаж чадах уу?',
-    'Юуг юуны төлөө орхих шийдвэр гаргасан бэ?',
-    'Энэ туршлагаас юу суралцсан бэ?',
-    'Бусдад ямар нөлөө үзүүлсэн бэ?',
-  ],
-  en: [
-    'Can you quantify the impact?',
-    'What trade-offs did you consider?',
-    'What did you learn from that experience?',
-    'How did that affect others on the team?',
-  ],
+// Curated short-response pools. The interviewer picks from the bucket that
+// matches what the candidate just said — substantive answers get warmer
+// acknowledgments, short answers get neutral ones, "I don't know" gets a
+// reassuring nudge. A short rolling memory prevents back-to-back repeats.
+
+const REACTION_POOLS_MN = {
+  // Short, casual acknowledgments for normal-length answers.
+  normal: ['Аан за', 'Ммм за', 'За', 'Аан', 'Ойлголоо', 'Аан за, ойлголоо', 'Заа', 'Өө за', 'Ойлгомжтой'],
+  // Warmer reactions for substantive, detailed answers.
+  substantive: ['Сонирхолтой', 'Сайн байна', 'Зөв шүү', 'Воав', 'Болж байна', 'Ойлгомжтой', 'Аан за, ойлголоо'],
+  // Neutral — for very short answers (1 sentence, low information).
+  short: ['Аан', 'За', 'Аан за', 'Тэгвэл', 'Заа'],
+  // Reassuring — for "I don't know" / empty answers. No judgment.
+  dontknow: ['Зүгээр шүү, цааш явъя', 'Ойлголоо, дараагийн асуулт', 'Зүгээр, цааш явъя', 'Аан за, цааш явъя'],
+  // Transitions — occasionally used to mark a clear move to the next question.
+  transition: ['Аан за, дараагийн асуулт', 'Баярлалаа, цааш явъя', 'Заа, дараагийнх'],
 };
 
-function generateInterviewerReaction(answerText, questionCategory, nextQuestion, isLastQuestion, lang, diff) {
-  const answerKind = classifyAnswer(answerText);
+const REACTION_POOLS_EN = {
+  normal: ['Mm-hm', 'Got it', 'Okay', 'Right', 'Understood', 'Sure', 'Alright'],
+  substantive: ['Interesting', 'Nice', 'That sounds good', 'Wow', 'Makes sense', 'Got it'],
+  short: ['Okay', 'Got it', 'Mm-hm', 'Right'],
+  dontknow: ["No worries, let's move on", "That's fine, next one", 'No problem'],
+  transition: ['Okay, next question', "Thanks, let's continue", 'Alright, moving on'],
+};
 
-  // Final question gets the warm closing — that's a goodbye, not a transition.
+const LAST_QUESTION_FALLBACK = {
+  mn: 'Цагаа гарган ярилцлагад оролцсонд тань маш их баярлалаа — танд амжилт хүсье!',
+  en: 'Thank you so much for your time today — we really enjoyed the conversation. Best of luck!',
+};
+
+// Rolling memory of the last 3 reactions used so we don't repeat one immediately.
+const _recentReactions = [];
+
+function pickReactionFromPool(answerKind, lang) {
+  const pools = lang === 'en' ? REACTION_POOLS_EN : REACTION_POOLS_MN;
+  let bucket;
+  if (answerKind === 'empty' || answerKind === 'dontknow') bucket = 'dontknow';
+  else if (answerKind === 'dontknow_like' || answerKind === 'too_short') bucket = 'short';
+  else if (answerKind === 'substantive') bucket = 'substantive';
+  else bucket = 'normal';
+
+  // 15% chance to use a transition phrase instead, regardless of bucket — keeps
+  // the rhythm varied. Skip for dontknow (transition would feel curt there).
+  let candidates = pools[bucket];
+  if (bucket !== 'dontknow' && Math.random() < 0.15) {
+    candidates = pools.transition;
+  }
+
+  const fresh = candidates.filter((r) => !_recentReactions.includes(r));
+  const choices = fresh.length > 0 ? fresh : candidates;
+  const pick = choices[Math.floor(Math.random() * choices.length)];
+
+  _recentReactions.push(pick);
+  if (_recentReactions.length > 3) _recentReactions.shift();
+  return pick;
+}
+
+async function fetchInterviewerReaction({ question, answer, lang, difficulty, isLastQuestion, jobTitle }) {
+  const answerKind = classifyAnswer(answer);
+
+  // Final question always gets the warm closing — it's a goodbye, not a transition.
   if (isLastQuestion) {
-    if (questionCategory === 'closing' && looksLikeQuestion(answerText)) {
-      return generateClosingResponse(answerText, lang);
+    try {
+      const { reaction, source } = await generateReaction({
+        question, answer, lang, difficulty, isLastQuestion, jobTitle,
+      });
+      if (reaction && source === 'llm') return reaction.trim();
+    } catch (e) {
+      console.error('[reaction] LLM closing failed', e);
     }
-    return lang === 'mn'
-      ? 'Цагаа гарган ярилцлагад оролцсонд тань маш их баярлалаа. Бид удахгүй эргэж холбогдох болно — танд амжилт хүсье!'
-      : 'Thank you so much for taking the time today — we really enjoyed the conversation and will be in touch soon. Best of luck!';
+    return LAST_QUESTION_FALLBACK[lang] || LAST_QUESTION_FALLBACK.mn;
   }
 
-  const isDontKnow = answerKind === 'dontknow' || answerKind === 'empty' || answerKind === 'dontknow_like';
-  const transition = pickShortTransition(lang, isDontKnow);
-
-  // Hard mode: ~25% chance of a follow-up probe — still kept short.
-  if (diff === 'hard' && !isDontKnow && answerKind !== 'too_short' && Math.random() < 0.25) {
-    const probe = pickRandom(HARD_PROBES[lang] || HARD_PROBES.mn);
-    return `${transition} ${probe}`;
+  // Try the LLM for a tailored sentence. Use it only if the backend says it
+  // came from the LLM — otherwise fall through to the curated short pool so
+  // the user never sees the same generic fallback sentence twice in a row.
+  try {
+    const { reaction, source } = await generateReaction({
+      question, answer, lang, difficulty, isLastQuestion, jobTitle,
+    });
+    if (reaction && source === 'llm') return reaction.trim();
+  } catch (e) {
+    console.error('[reaction] LLM call failed', e);
   }
 
-  return transition;
+  return pickReactionFromPool(answerKind, lang);
 }
 
 /* ============================================================
@@ -253,43 +230,6 @@ function sanitizeQuestion(q) {
     if (cleaned.length > 10) return { ...q, question: cleaned };
   }
   return q;
-}
-
-function looksLikeQuestion(text) {
-  if (!text) return false;
-  const t = text.trim();
-  return t.includes('?') || t.includes(' уу') || t.includes(' вэ') ||
-    t.includes(' юу ') || t.includes('мэдэхийг') || t.includes('хүсч байна') ||
-    t.includes('тухай') || t.includes('would') || t.includes('could') || t.includes('what');
-}
-
-function generateClosingResponse(answer, lang) {
-  const lower = answer.toLowerCase();
-  const parts = [];
-  if (lang === 'mn') {
-    if (lower.includes('onboarding') || lower.includes('эхний') || lower.includes('сар')) {
-      parts.push('Эхний 3 сард танд ментор хуваарилагдах бөгөөд багийн ажлын горим, хэрэгсэл, дотоод процессуудтай танилцах болно.');
-    } else if (lower.includes('баг') || lower.includes('соёл') || lower.includes('хамт олон')) {
-      parts.push('Манай баг нээлттэй харилцааг эрхэмлэдэг. Долоо хоног тутмын багийн уулзалт байдаг.');
-    } else if (lower.includes('хөгжил') || lower.includes('өсөлт') || lower.includes('карьер')) {
-      parts.push('Бид ажилтнуудын мэргэжлийн хөгжилд ихээхэн анхаардаг.');
-    } else {
-      parts.push('Сайн асуулт байна. Дараагийн шатны уулзалтад дэлгэрэнгүй ярилцах боломжтой.');
-    }
-    parts.push('Таны ярилцлагад оролцсонд баярлалаа. Амжилт хүсье!');
-  } else {
-    if (lower.includes('onboarding') || lower.includes('first') || lower.includes('month')) {
-      parts.push('In the first three months, you would be paired with a mentor to get familiar with our workflows and processes.');
-    } else if (lower.includes('team') || lower.includes('culture') || lower.includes('environment')) {
-      parts.push('Our team values open communication. We have weekly meetings and encourage knowledge sharing.');
-    } else if (lower.includes('growth') || lower.includes('career') || lower.includes('develop')) {
-      parts.push('We invest in professional development with performance reviews twice a year.');
-    } else {
-      parts.push('Great question. We can discuss that in more detail during the next stage.');
-    }
-    parts.push('Thank you for coming in today. We will be in touch soon. Best of luck!');
-  }
-  return parts.join(' ');
 }
 
 /* ============================================================
@@ -323,9 +263,13 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
       if (blob?.size > 0) {
         const audio = new Audio(URL.createObjectURL(blob));
         currentAudioRef.current = audio;
-        audio.play().catch(() => {});
+        audio.play().catch((err) => console.error('[tts] audio.play() rejected', err));
+      } else {
+        console.warn('[tts] empty audio blob received');
       }
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error('[tts] generation failed', err);
+    }
   }
 
   /* ─── STATE ───
@@ -398,17 +342,17 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
       i++;
       setQuestionDisplayText(words.slice(0, i).join(' '));
       if (i >= words.length) { clearInterval(interval); setQuestionTypingDone(true); }
-    }, 60);
+    }, 50);
     const ttsTimer = setTimeout(() => {
       if (currentQuestion) playTTSAudio(currentQuestion.question);
-    }, 400);
+    }, 250);
     return () => { clearInterval(interval); clearTimeout(ttsTimer); };
   }, [phase, currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Input ready delay after question typing finishes
   useEffect(() => {
     if (!questionTypingDone || phase !== 'questioning') { setInputReady(false); return; }
-    const timer = setTimeout(() => setInputReady(true), 500);
+    const timer = setTimeout(() => setInputReady(true), 300);
     return () => clearTimeout(timer);
   }, [questionTypingDone, phase]);
 
@@ -419,12 +363,9 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
     setResponseTypingDone(false);
     setInterviewerThinking(true);
 
-    // Brief beat before the transition appears. Short responses (the new
-    // 5-6 word transitions) get a quick pause; the goodbye gets a longer one.
-    const respWords = (responseMessage || '').split(/\s+/).filter(Boolean).length;
-    const thinkMs = respWords <= 8
-      ? 350
-      : Math.min(700 + answerWordCount * 20, 2500);
+    // Brief beat before the reaction appears — feels like the interviewer
+    // is gathering their thoughts after hearing the answer.
+    const thinkMs = Math.min(350 + answerWordCount * 15, 1800);
 
     let typingInterval = null;
     const thinkTimer = setTimeout(() => {
@@ -435,7 +376,7 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
         i++;
         setResponseDisplayText(words.slice(0, i).join(' '));
         if (i >= words.length) { clearInterval(typingInterval); typingInterval = null; setResponseTypingDone(true); }
-      }, 90);
+      }, 55);
       playTTSAudio(responseMessage);
     }, thinkMs);
 
@@ -446,13 +387,12 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
     };
   }, [phase, responseMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // After response typing is done → advance to next question (unless last)
-  // Short transitions stay on screen ~1.3s before the next question fades in.
-  // Longer responses (the final-question goodbye) get a longer beat to read.
+  // After response typing is done → advance to next question (unless last).
+  // ~7.5s floor so the user has time to absorb the reaction without dragging.
   useEffect(() => {
     if (phase !== 'responding' || !responseTypingDone || isLastAnswer) return;
     const respWc = (responseMessage || '').split(/\s+/).filter(Boolean).length;
-    const postPause = respWc <= 8 ? 1300 : Math.min(2000 + respWc * 30, 3500);
+    const postPause = Math.min(5000 + respWc * 20, 12000);
     const timer = setTimeout(() => {
       setPhase('questioning');
       setQuestionTime(Date.now());
@@ -508,33 +448,48 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
     setQuestionElapsed(0);
   }
 
-  function submitAnswer(answerText) {
+  async function submitAnswer(answerText) {
     if (!answerText.trim()) return;
     stopAudio();
 
+    const askedQuestion = currentQuestion.question;
     const timeTaken = Math.floor((Date.now() - questionTime) / 1000);
     const pair = {
-      question: currentQuestion.question,
+      question: askedQuestion,
       answer: answerText,
       timeTaken,
-      tag: classifyQuestion(currentQuestion.question, currentQuestion.category),
+      tag: classifyQuestion(askedQuestion, currentQuestion.category),
       skipped: false,
     };
 
     const nextIndex = currentIndex + 1;
     const isLast = nextIndex >= questions.length;
-    const nextQ = isLast ? null : questions[nextIndex];
-
-    const response = generateInterviewerReaction(answerText, currentQuestion.category, nextQ, isLast, lang, difficulty);
 
     const wc = (answerText || '').trim().split(/\s+/).filter(Boolean).length;
     setAnswerWordCount(wc);
     setAnsweredPairs(prev => [...prev, pair]);
     setInputText('');
     setCurrentIndex(nextIndex);
-    setResponseMessage(response);
     setIsLastAnswer(isLast);
+
+    // Enter responding phase immediately with the thinking dots — the LLM
+    // call below sets responseMessage when it returns, which then triggers
+    // the typing-animation effect.
+    setResponseMessage('');
+    setInterviewerThinking(true);
+    setResponseDisplayText('');
+    setResponseTypingDone(false);
     setPhase('responding');
+
+    const reaction = await fetchInterviewerReaction({
+      question: askedQuestion,
+      answer: answerText,
+      lang,
+      difficulty,
+      isLastQuestion: isLast,
+      jobTitle,
+    });
+    setResponseMessage(reaction);
   }
 
   function handleAutoSkip() {

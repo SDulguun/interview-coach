@@ -92,6 +92,18 @@ export async function parseResume(formData) {
   return response.data;
 }
 
+export async function generateReaction({ question, answer, lang = 'mn', difficulty = 'medium', isLastQuestion = false, jobTitle = '' }) {
+  const response = await api.post('/api/reaction/generate', {
+    question,
+    answer,
+    lang,
+    difficulty,
+    is_last_question: isLastQuestion,
+    job_title: jobTitle,
+  }, { timeout: 12000 });
+  return response.data;
+}
+
 export async function generateTTS(text, lang = 'mn') {
   const voice = lang === 'en' ? 'en-US-AvaNeural' : 'mn-MN-YesuiNeural';
   const response = await api.post('/api/tts/generate', { text, voice }, {
