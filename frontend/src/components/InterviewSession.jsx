@@ -8,6 +8,10 @@ import { useLang } from '../lang';
 import { classifyQuestion, formatTime, getQuestionPhase } from '../utils';
 import './interview-session.css';
 
+// Hide voice input in environments where the backend has no STT
+// (e.g. cloud demo). Set VITE_DISABLE_VOICE=true in those deploys.
+const VOICE_DISABLED = String(import.meta.env.VITE_DISABLE_VOICE || '').toLowerCase() === 'true';
+
 /* ============================================================
    TIME CONFIG — separate for text (writing) vs audio (voice)
    Writing in Mongolian needs significantly more time.
@@ -834,10 +838,12 @@ function InterviewSession({ questions: rawQuestions, onSessionEnd, difficulty = 
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     {t('tab_text')}
                   </button>
-                  <button className={inputMode === 'audio' ? 'active' : ''} onClick={() => setInputMode('audio')}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
-                    {t('tab_audio')}
-                  </button>
+                  {!VOICE_DISABLED && (
+                    <button className={inputMode === 'audio' ? 'active' : ''} onClick={() => setInputMode('audio')}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+                      {t('tab_audio')}
+                    </button>
+                  )}
                 </div>
 
                 {inputMode === 'text' ? (
