@@ -1,0 +1,8 @@
+# Local development on macOS — includes Core ML + Whisper deps.
+# For Linux / production deploy use requirements.txt instead.
+
+-r requirements.txt
+
+faster-whisper==1.1.0
+coremltools>=7.0
+transformers>=4.36.0

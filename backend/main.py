@@ -1,5 +1,6 @@
 """FastAPI application for the Interview Coach."""
 import logging
+import os
 import threading
 from contextlib import asynccontextmanager
 
@@ -13,15 +14,23 @@ from .routers import analyze, feedback, jobs, questions, reaction, resume, tts
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+DISABLE_WHISPER = os.environ.get("DISABLE_WHISPER", "").strip().lower() in ("1", "true", "yes")
+DISABLE_COREML = os.environ.get("DISABLE_COREML", "").strip().lower() in ("1", "true", "yes")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown events."""
     logger.info("Starting Interview Coach API...")
-    # Load models in background so API is available immediately
-    threading.Thread(target=load_whisper_model, daemon=True).start()
-    threading.Thread(target=load_embedding_model, daemon=True).start()
-    logger.info("API ready (Whisper + Core ML loading in background).")
+    if DISABLE_WHISPER:
+        logger.info("Whisper STT disabled via DISABLE_WHISPER env var.")
+    else:
+        threading.Thread(target=load_whisper_model, daemon=True).start()
+    if DISABLE_COREML:
+        logger.info("Core ML embeddings disabled via DISABLE_COREML env var (TF-IDF fallback).")
+    else:
+        threading.Thread(target=load_embedding_model, daemon=True).start()
+    logger.info("API ready.")
     yield
     logger.info("Shutting down.")
 
@@ -33,14 +42,24 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS for React dev server
-app.add_middleware(
-    CORSMiddleware,
-    allow_origin_regex=r"http://localhost:\d+",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS — defaults to localhost dev; production passes CORS_ORIGINS (comma-separated)
+_cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
+if _cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"http://localhost:\d+",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Register routers
 app.include_router(analyze.router)
