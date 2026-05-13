@@ -48,3 +48,6 @@ Thumbs.db
 .agents/
 .claude/
 skills-lock.json
+
+# Working/review docs (not for public release)
+COPY_REVIEW.md

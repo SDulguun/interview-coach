@@ -27,6 +27,8 @@ function App() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [viewingSession, setViewingSession] = useState(null);
+  const [repracticeCtx, setRepracticeCtx] = useState(null);
   const [jobDescription, setJobDescription] = useState('');
   const [resumeSkills, setResumeSkills] = useState([]);
   const [userName, setUserName] = useState(() => {
@@ -129,15 +131,18 @@ function App() {
       );
       setResults(data);
 
+      const newScore = Math.round(data.aggregate.overall_score);
       // Store full session data for history detail view
       const sessionData = {
         date: new Date().toISOString(),
-        score: Math.round(data.aggregate.overall_score),
-        category: selectedJob?.title || '',
+        score: newScore,
+        category: selectedJob?.title || (repracticeCtx ? (lang === 'mn' ? 'Дахин дасгал' : 'Re-practice') : ''),
         questionsAnswered: answers.length,
         totalQuestions: sessionQuestions.length,
         duration: totalDuration,
         difficulty,
+        repractice: !!repracticeCtx,
+        originalScore: repracticeCtx?.originalScore ?? null,
         // Full data for detail view
         questions: sessionQuestions.map(q => ({
           question: q.question,
@@ -168,6 +173,19 @@ function App() {
       const hist = JSON.parse(localStorage.getItem(histKey) || '[]');
       hist.unshift(sessionData);
       localStorage.setItem(histKey, JSON.stringify(hist.slice(0, 20)));
+
+      if (repracticeCtx) {
+        setResults({
+          ...data,
+          session: {
+            ...(data.session || {}),
+            repractice: true,
+            originalScore: repracticeCtx.originalScore,
+            newScore,
+          },
+        });
+        setRepracticeCtx(null);
+      }
       setPhase('results');
     } catch (err) {
       console.error('Analysis failed:', err, err?.response?.data);
@@ -176,11 +194,11 @@ function App() {
         setError(t('err_no_answers'));
       } else if (err?.code === 'ECONNABORTED' || /timeout/i.test(err?.message || '')) {
         setError(lang === 'mn'
-          ? 'Шинжилгээ удаан үргэлжиллээ. Интернэт холболтоо шалгаад дахин оролдоно уу.'
+          ? 'Хариу удаж байна. Интернэтээ шалгаад дахин оролдоорой.'
           : 'Analysis took too long. Check your connection and try again.');
       } else if (!err?.response) {
         setError(lang === 'mn'
-          ? 'Сервертэй холбогдож чадсангүй. Backend ажиллаж байгаа эсэхийг шалгаарай.'
+          ? 'Сервертэй холбогдож чадсангүй. Backend асаалттай байгаа эсэхээ шалгаарай.'
           : 'Could not reach the server. Please make sure the backend is running.');
       } else {
         setError(t('err_analyze'));
@@ -199,6 +217,24 @@ function App() {
     setError('');
     setJobDescription('');
     setResumeSkills([]);
+    setViewingSession(null);
+    setRepracticeCtx(null);
+  }
+
+  function handleOpenSession(sessionData) {
+    setViewingSession(sessionData);
+    setPhase('results');
+  }
+
+  function handlePracticeQuestion(question, originalScore) {
+    if (!question) return;
+    setViewingSession(null);
+    setSessionAnswers([]);
+    setResults(null);
+    setSessionQuestions([question]);
+    setSessionId(`s-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+    setRepracticeCtx({ originalScore, question: question.question });
+    setPhase('interview');
   }
 
   function handleResumeSkills(skills) {
@@ -292,26 +328,57 @@ function App() {
           )}
 
           {/* RESULTS PHASE */}
-          {phase === 'results' && (
-            <>
-              <button className="btn btn-back" onClick={handleRestart}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                {t('btn_back')}
-              </button>
-              <SessionResults
-                results={results}
-                answers={sessionAnswers}
-                questions={sessionQuestions}
-                totalQuestions={sessionQuestions.length}
-                sessionId={sessionId}
-                onRestart={handleRestart}
-              />
-            </>
-          )}
+          {phase === 'results' && (() => {
+            const v = viewingSession;
+            const showResults = v
+              ? {
+                  ...v.results,
+                  session: {
+                    total_duration_seconds: v.duration,
+                    total_questions: v.totalQuestions,
+                    repractice: !!v.repractice,
+                    originalScore: v.originalScore ?? null,
+                    newScore: v.score,
+                  },
+                }
+              : results;
+            const showAnswers   = v ? v.answers   : sessionAnswers;
+            const showQuestions = v ? v.questions : sessionQuestions;
+            const showSessionId = v ? `hist-${v.date}` : sessionId;
+            const showJobTitle  = v ? v.category   : (selectedJob?.title || '');
+            const showDifficulty = v ? v.difficulty : difficulty;
+            return (
+              <>
+                <button className="btn btn-back" onClick={() => {
+                  if (v) { setViewingSession(null); setPhase('history'); }
+                  else handleRestart();
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                  {t('btn_back')}
+                </button>
+                <SessionResults
+                  results={showResults}
+                  answers={showAnswers}
+                  questions={showQuestions}
+                  totalQuestions={showQuestions?.length || 0}
+                  sessionId={showSessionId}
+                  jobTitle={showJobTitle}
+                  difficulty={showDifficulty}
+                  userName={userName}
+                  onRestart={handleRestart}
+                  onPracticeQuestion={handlePracticeQuestion}
+                />
+              </>
+            );
+          })()}
 
           {/* HISTORY PHASE */}
           {phase === 'history' && (
-            <HistoryView onStartNew={handleRestart} userId={currentUser?.id} />
+            <HistoryView
+              onStartNew={handleRestart}
+              userId={currentUser?.id}
+              onOpenSession={handleOpenSession}
+            />
           )}
 
           {/* GUIDES PHASE */}

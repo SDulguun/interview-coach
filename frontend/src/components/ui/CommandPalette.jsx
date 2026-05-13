@@ -29,7 +29,7 @@ function CommandPalette({ open, onOpenChange, onCommand, paused = false, lang = 
     ...(paused ? [{ id: 'resume', icon: Home, mn: 'Дасгал үргэлжлүүлэх', en: 'Resume practice' }] : []),
     { id: 'history', icon: History,   mn: 'Түүх харах',                     en: 'View history' },
     { id: 'star',    icon: BookOpen,  mn: 'STAR зөвлөмж',                   en: 'STAR guide' },
-    { id: 'guides',  icon: FileText,  mn: 'CV + ажлын заар харьцуулах',     en: 'CV + JD compare' },
+    { id: 'guides',  icon: FileText,  mn: 'CV + ажлын зар харьцуулах',      en: 'CV + JD compare' },
     { id: 'lang',    icon: Languages, mn: 'Хэл солих — English',            en: 'Switch language — Монгол' },
     { id: 'logout',  icon: LogOut,    mn: 'Гарах',                          en: 'Sign out' },
   ];
@@ -42,13 +42,13 @@ function CommandPalette({ open, onOpenChange, onCommand, paused = false, lang = 
             <Search size={16} strokeWidth={1.5} />
             <Command.Input
               autoFocus
-              placeholder={lang === 'mn' ? 'Команд хайх…' : 'Search commands…'}
+              placeholder={lang === 'mn' ? 'Юу хайх вэ…' : 'Search commands…'}
             />
             <Kbd>ESC</Kbd>
           </div>
           <Command.List>
             <Command.Empty className="cmdk-empty">
-              {lang === 'mn' ? 'Үр дүн олдсонгүй' : 'No results'}
+              {lang === 'mn' ? 'Юу ч олдсонгүй' : 'No results'}
             </Command.Empty>
             <Command.Group>
               {items.map(({ id, icon: Icon, mn, en }) => (

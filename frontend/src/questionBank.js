@@ -262,7 +262,7 @@ const questionBank = {
       focus: 'Тодорхой зорилго, урт хугацааны төлөвлөгөө', keywords: ['зорилго', 'карьер', 'сертификат'] },
 
     { id: 'fin_15', category: 'closing', duration: 60,
-      question: 'Бидэнд асуух зүйл байна уу?',
+      question: 'Биднээс асуух зүйл байна уу?',
       sample_answer: 'Энэ албан тушаалын анхны 3 сарын хүлээлт, болон багийн бүтцийн талаар мэдэхийг хүсч байна.',
       focus: 'Сонирхол, бэлтгэл', keywords: ['асуулт'] },
 
@@ -792,7 +792,7 @@ const questionBank = {
       focus: 'Тодорхой зорилго', keywords: ['зорилго', 'удирдлага', 'хөгжил'] },
 
     { id: 'gen_15', category: 'closing', duration: 60,
-      question: 'Бидэнд асуух зүйл байна уу?',
+      question: 'Биднээс асуух зүйл байна уу?',
       sample_answer: 'Энэ албан тушаалын анхны 3 сарын зорилтууд болон багийн ажиллах горимын талаар мэдэхийг хүсч байна.',
       focus: 'Сонирхол, идэвх', keywords: ['асуулт'] },
 
@@ -868,7 +868,7 @@ const DIFFICULTY_OVERRIDES = {
     learning:            { mn: 'Сүүлийн үед шинээр юу суралцсан бэ?', en: 'What have you learned recently?' },
     pressure:            { mn: 'Ажил их байхад хэрхэн зохицдог вэ?', en: 'How do you handle a busy workload?' },
     goals:               { mn: 'Ирээдүйд юу хийхийг хүсэж байна вэ?', en: 'What do you want to do in the future?' },
-    closing:             { mn: 'Бидэнд асуух зүйл байна уу?', en: 'Do you have any questions for us?' },
+    closing:             { mn: 'Биднээс асуух зүйл байна уу?', en: 'Do you have any questions for us?' },
     values:              { mn: 'Ажлын байранд юу хамгийн чухал гэж бодож байна вэ?', en: 'What do you value most in a workplace?' },
     adaptability:        { mn: 'Шинэ зүйлд хэрхэн дасдаг вэ?', en: 'How do you adapt to new things?' },
   },

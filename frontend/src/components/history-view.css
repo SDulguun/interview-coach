@@ -188,9 +188,25 @@
 .history-row-score.amber { color: var(--amber); }
 .history-row-chev {
   color: var(--text-faint);
-  transition: transform 250ms ease-out;
+  transition: transform 200ms ease-out, color 200ms;
 }
-.history-row-chev.open { transform: rotate(180deg); color: var(--iris-300); }
+.history-row:hover:not(:disabled) .history-row-chev {
+  color: var(--iris-300);
+  transform: translateX(2px);
+}
+.history-row-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--iris-300);
+  border: 0.5px solid rgba(139, 92, 246, 0.3);
+}
 
 /* ---------- Expanded detail ---------- */
 .history-row-detail {
