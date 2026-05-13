@@ -35,7 +35,7 @@ The goal is to close the practice gap for Mongolian candidates who don't have ac
 ## Features
 
 - **10 job categories** — Banking, Sales, Mining, Construction, Manufacturing, Education, IT, Healthcare, Marketing, Admin/HR — each with role-specific questions
-- **3 difficulty modes** — Easy (15 Q, supportive), Medium (15 Q, neutral), Hard (17 Q, probing follow-ups)
+- **3 difficulty modes** — Easy (10 Q, ~15 min, supportive), Medium (15 Q, ~25 min, neutral), Hard (20 Q, ~35 min, probing follow-ups)
 - **Voice or text input** — Mongolian Whisper STT (`bayartsogt/whisper-large-v2-mn-13`) or typed responses; switchable mid-session
 - **Mongolian text-to-speech** — Microsoft Edge TTS (`mn-MN-YesuiNeural`) reads each question aloud
 - **5-dimension NLP scoring** — Word count, filler words, vocabulary richness (TTR), structure (STAR + action verbs, question-type-aware), relevance (Core ML embeddings + TF-IDF + skill keywords)

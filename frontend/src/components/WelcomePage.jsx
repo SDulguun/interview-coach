@@ -17,7 +17,7 @@ function WelcomePage({ onStart, onOpenPalette }) {
       title: lang === 'mn' ? 'Бодит Ярилцлагын Мэдрэмж' : 'Realistic Mock Interviews',
       body: lang === 'mn'
         ? 'Жинхэнэ ярилцлагынх шиг асуултаар бэлдэж, өөртөө итгэлтэй болоорой.'
-        : 'Full interviews with up to 15 questions covering introduction, motivation, experience, and technical topics.',
+        : 'Full interviews with up to 20 questions covering introduction, motivation, experience, and technical topics.',
     },
     {
       Icon: TrendingUp,

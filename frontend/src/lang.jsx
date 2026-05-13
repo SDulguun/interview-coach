@@ -84,13 +84,6 @@ const translations = {
   welcome_fields: { mn: 'Ажлын Салбар', en: 'Job Fields' },
   welcome_mongolian: { mn: 'Монгол Хэлээр', en: 'In Mongolian' },
   welcome_ai_feedback: { mn: 'AI Үнэлгээ', en: 'AI Feedback' },
-  session_type_quick: { mn: 'Хурдан Дасгал', en: 'Quick Practice' },
-  session_type_standard: { mn: 'Стандарт Ярилцлага', en: 'Standard Interview' },
-  session_type_full: { mn: 'Бүрэн Ярилцлага', en: 'Full Mock Interview' },
-  session_type_quick_desc: { mn: '5 асуулт, ~8 минут', en: '5 questions, ~8 min' },
-  session_type_standard_desc: { mn: '12 асуулт, ~20 минут', en: '12 questions, ~20 min' },
-  session_type_full_desc: { mn: '15 асуулт, ~30 минут', en: '15 questions, ~30 min' },
-
   // Difficulty levels (F)
   difficulty_title: { mn: 'Түвшин Сонгох', en: 'Choose Difficulty' },
   difficulty_easy: { mn: 'Хөнгөн', en: 'Easy' },
