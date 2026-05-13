@@ -14,9 +14,9 @@ The goal is to close the practice gap for Mongolian candidates who don't have ac
 
 ## Live Demo
 
-- **Frontend (Vercel):** _https://interview-coach-mn.vercel.app_ &nbsp;<!-- TODO: update after first deploy -->
-- **Backend (Render):** _https://interview-coach-api.onrender.com/api/health_ &nbsp;<!-- TODO: update after first deploy -->
-- **Video walkthrough (2 min):** _https://www.loom.com/share/PLACEHOLDER_ &nbsp;<!-- TODO: paste Loom/YouTube URL -->
+- **Frontend (Vercel):** https://interview-coach-sage.vercel.app
+- **Backend (Render):** https://interview-coach-api-qe7r.onrender.com/api/health
+- **Video walkthrough (2 min):** _https://www.loom.com/share/PLACEHOLDER_ &nbsp;<!-- TODO: paste Loom/YouTube URL after recording -->
 
 > **Note on the cloud demo:** to fit free-tier hosting limits, the deployed backend runs the **rule-based NLP pipeline only**. Voice input (Whisper STT), Core ML semantic embeddings, and LLM-augmented sample answers are documented in the local-setup section below and demonstrated in the video. The cloud demo's text-only path is the same code that the local install runs, with the same 5-dimension scoring.
 >
