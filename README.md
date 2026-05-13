@@ -235,7 +235,7 @@ interview-coach/
 ## Author
 
 **Dulguun Sukhchuluun** ([@SDulguun](https://github.com/SDulguun))
-Built as the capstone project for the AI Course at the University of Finance and Economics / Way Academy, May 2026.
+Built as the capstone project, May 2026.
 
 ## License
 
